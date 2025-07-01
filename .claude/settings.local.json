@@ -16,7 +16,8 @@
       "Bash(git remote set-url:*)",
       "Bash(npm install:*)",
       "Bash(vercel login:*)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

@@ -9,10 +9,15 @@ import requests
 import json
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
 
-app = Flask(__name__, 
-            template_folder='../templates',
-            static_folder='../static')
+app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'meta-content-manager-secret-key')
+
+# Configure template and static folders for Vercel
+import os
+template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
+static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+app.template_folder = template_dir
+app.static_folder = static_dir
 
 class MetaAPI:
     def __init__(self):
@@ -257,9 +262,8 @@ def not_found(error):
 def internal_error(error):
     return render_template('500.html'), 500
 
-# For Vercel
-def handler(event, context):
-    return app(event, context)
+# For Vercel - this is the entry point
+app.wsgi_app = app.wsgi_app
 
 if __name__ == '__main__':
     app.run(debug=False)
