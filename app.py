@@ -51,6 +51,36 @@ def test():
     """Simple test route"""
     return "<h1>Meta Content Manager is Working!</h1><p>Environment variables loaded successfully.</p>"
 
+@app.route('/data-deletion', methods=['GET', 'POST'])
+def data_deletion():
+    """Data deletion endpoint for Meta app compliance"""
+    if request.method == 'GET':
+        return """
+        <html>
+        <head><title>Data Deletion - Meta Content Manager</title></head>
+        <body style="font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px;">
+            <h1>Data Deletion Request</h1>
+            <p>This Meta Content Manager app does not store any user data persistently.</p>
+            <p>All user interactions are processed in real-time and no personal data is retained.</p>
+            <p>If you have any concerns about data privacy, please contact: samschofield90@hotmail.co.uk</p>
+            <h2>What data we don't store:</h2>
+            <ul>
+                <li>No user profiles or account information</li>
+                <li>No post content or media files</li>
+                <li>No analytics data beyond what Meta provides via API</li>
+                <li>No personal information or contact details</li>
+            </ul>
+            <p>This app only facilitates real-time communication with Meta's API and does not maintain any database of user information.</p>
+        </body>
+        </html>
+        """
+    
+    # Handle POST request (Meta's callback)
+    return jsonify({
+        "url": request.form.get("confirmation_code", ""),
+        "confirmation_code": request.form.get("confirmation_code", "")
+    })
+
 @app.route('/pages')
 def pages():
     """Get user's Facebook pages"""
