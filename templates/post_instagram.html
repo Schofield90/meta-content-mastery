@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Post to Instagram - Meta Content Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="fab fa-instagram"></i> Post to Instagram</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Note:</strong> Instagram posting requires an Instagram Business Account connected to your Facebook page.
+                </div>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="instagram_account_id" class="form-label">Instagram Business Account ID *</label>
+                        <input type="text" class="form-control" id="instagram_account_id" name="instagram_account_id" 
+                               placeholder="Enter your Instagram Business Account ID" required>
+                        <div class="form-text">
+                            You can find this in your Facebook Business settings or by using the Meta Graph API Explorer.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="image_url" class="form-label">Image URL *</label>
+                        <input type="url" class="form-control" id="image_url" name="image_url" 
+                               placeholder="https://example.com/image.jpg" required>
+                        <div class="form-text">
+                            The image must be publicly accessible and in JPG, PNG, or GIF format.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="caption" class="form-label">Caption</label>
+                        <textarea class="form-control" id="caption" name="caption" rows="5" 
+                                  placeholder="Write a caption for your Instagram post..."></textarea>
+                        <div class="form-text">
+                            <small id="caption-count">0 characters</small>
+                            <span class="text-muted">(Instagram captions can be up to 2,200 characters)</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Image Preview</label>
+                        <div class="border rounded p-3 text-center bg-light">
+                            <img id="image-preview" src="" alt="Image preview" class="img-fluid rounded" 
+                                 style="max-height: 300px; display: none;">
+                            <div id="no-preview" class="text-muted">
+                                <i class="fas fa-image fa-3x"></i>
+                                <p class="mt-2">Enter an image URL to see preview</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-danger btn-lg">
+                                    <i class="fas fa-paper-plane"></i> Post to Instagram
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Instagram Posting Tips</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Image Requirements</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> High-quality images (1080x1080px ideal)</li>
+                            <li><i class="fas fa-check text-success"></i> JPG, PNG, or GIF format</li>
+                            <li><i class="fas fa-check text-success"></i> File size under 30MB</li>
+                            <li><i class="fas fa-check text-success"></i> Publicly accessible URL</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Caption Best Practices</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-hashtag text-info"></i> Use 3-5 relevant hashtags</li>
+                            <li><i class="fas fa-at text-info"></i> Tag relevant accounts</li>
+                            <li><i class="fas fa-heart text-info"></i> Tell a compelling story</li>
+                            <li><i class="fas fa-question text-info"></i> Ask questions to engage followers</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Setup Required:</strong> To post to Instagram, you need to:
+                    <ol class="mb-0 mt-2">
+                        <li>Connect your Instagram account to a Facebook page</li>
+                        <li>Convert to an Instagram Business account</li>
+                        <li>Get the Instagram Business Account ID from Facebook Business settings</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Caption character counter
+const captionTextarea = document.getElementById('caption');
+const captionCount = document.getElementById('caption-count');
+
+captionTextarea.addEventListener('input', function() {
+    const count = this.value.length;
+    captionCount.textContent = count + ' characters';
+    
+    if (count > 2200) {
+        captionCount.className = 'text-danger';
+    } else {
+        captionCount.className = '';
+    }
+});
+
+// Image preview
+const imageUrlInput = document.getElementById('image_url');
+const imagePreview = document.getElementById('image-preview');
+const noPreview = document.getElementById('no-preview');
+
+imageUrlInput.addEventListener('input', function() {
+    const url = this.value.trim();
+    
+    if (url && isValidImageUrl(url)) {
+        imagePreview.src = url;
+        imagePreview.style.display = 'block';
+        noPreview.style.display = 'none';
+        
+        imagePreview.onerror = function() {
+            imagePreview.style.display = 'none';
+            noPreview.style.display = 'block';
+            noPreview.innerHTML = `
+                <i class="fas fa-exclamation-triangle text-warning fa-2x"></i>
+                <p class="mt-2 text-warning">Could not load image from URL</p>
+            `;
+        };
+    } else {
+        imagePreview.style.display = 'none';
+        noPreview.style.display = 'block';
+        noPreview.innerHTML = `
+            <i class="fas fa-image fa-3x"></i>
+            <p class="mt-2">Enter an image URL to see preview</p>
+        `;
+    }
+});
+
+function isValidImageUrl(url) {
+    return /\.(jpg|jpeg|png|gif)$/i.test(url) || url.includes('imgur') || url.includes('unsplash');
+}
+
+// Auto-resize textarea
+captionTextarea.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+});
+</script>
+{% endblock %}

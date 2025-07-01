@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Meta Content Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0"><i class="fas fa-chart-bar"></i> Analytics Dashboard</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fab fa-facebook"></i> Facebook Page Insights</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="facebook-insights-form">
+                                    <div class="mb-3">
+                                        <label for="fb_page_id" class="form-label">Page ID</label>
+                                        <input type="text" class="form-control" id="fb_page_id" name="page_id" 
+                                               placeholder="Enter Facebook Page ID" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="fb_metric" class="form-label">Metric</label>
+                                        <select class="form-select" id="fb_metric" name="metric">
+                                            <option value="page_views">Page Views</option>
+                                            <option value="page_fans">Page Fans</option>
+                                            <option value="page_impressions">Page Impressions</option>
+                                            <option value="page_engaged_users">Engaged Users</option>
+                                            <option value="page_post_engagements">Post Engagements</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="fb_period" class="form-label">Period</label>
+                                        <select class="form-select" id="fb_period" name="period">
+                                            <option value="day">Daily</option>
+                                            <option value="week">Weekly</option>
+                                            <option value="days_28">Last 28 Days</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-chart-line"></i> Get Facebook Insights
+                                        </button>
+                                    </div>
+                                </form>
+                                
+                                <div id="fb-results" class="mt-4" style="display: none;">
+                                    <h6>Results:</h6>
+                                    <div id="fb-insights-content"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0"><i class="fab fa-instagram"></i> Instagram Insights</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="instagram-insights-form">
+                                    <div class="mb-3">
+                                        <label for="ig_account_id" class="form-label">Instagram Account ID</label>
+                                        <input type="text" class="form-control" id="ig_account_id" name="instagram_account_id" 
+                                               placeholder="Enter Instagram Business Account ID" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="ig_metric" class="form-label">Metric</label>
+                                        <select class="form-select" id="ig_metric" name="metric">
+                                            <option value="impressions">Impressions</option>
+                                            <option value="reach">Reach</option>
+                                            <option value="profile_views">Profile Views</option>
+                                            <option value="website_clicks">Website Clicks</option>
+                                            <option value="follower_count">Follower Count</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-chart-line"></i> Get Instagram Insights
+                                        </button>
+                                    </div>
+                                </form>
+                                
+                                <div id="ig-results" class="mt-4" style="display: none;">
+                                    <h6>Results:</h6>
+                                    <div id="ig-insights-content"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Analytics Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fab fa-facebook text-primary"></i> Facebook Metrics</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Page Views:</strong> Number of times your page was viewed</li>
+                            <li><strong>Page Fans:</strong> Total number of people who like your page</li>
+                            <li><strong>Page Impressions:</strong> Number of times your page's posts were displayed</li>
+                            <li><strong>Engaged Users:</strong> Number of people who engaged with your page</li>
+                            <li><strong>Post Engagements:</strong> Total engagement on your posts</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fab fa-instagram text-danger"></i> Instagram Metrics</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Impressions:</strong> Number of times your content was displayed</li>
+                            <li><strong>Reach:</strong> Number of unique accounts that saw your content</li>
+                            <li><strong>Profile Views:</strong> Number of times your profile was viewed</li>
+                            <li><strong>Website Clicks:</strong> Number of clicks to your website</li>
+                            <li><strong>Follower Count:</strong> Total number of followers</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Note:</strong> Some metrics may require additional permissions or may not be available for all account types. 
+                    Instagram insights are only available for Instagram Business accounts.
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-tips"></i> Getting Account IDs</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Facebook Page ID</h6>
+                        <p>You can find your Facebook Page ID by:</p>
+                        <ol>
+                            <li>Go to your Facebook page</li>
+                            <li>Click "About" in the left menu</li>
+                            <li>Scroll down to find "Page ID"</li>
+                            <li>Or check the <a href="{{ url_for('pages') }}">Pages section</a> of this app</li>
+                        </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Instagram Business Account ID</h6>
+                        <p>To get your Instagram Business Account ID:</p>
+                        <ol>
+                            <li>Use the <a href="https://developers.facebook.com/tools/explorer/" target="_blank">Graph API Explorer</a></li>
+                            <li>Make a GET request to: <code>/me/accounts</code></li>
+                            <li>Find your page and look for the <code>instagram_business_account</code> field</li>
+                            <li>The <code>id</code> in that field is your Instagram Business Account ID</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Facebook Insights Form
+document.getElementById('facebook-insights-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const results = document.getElementById('fb-results');
+    const content = document.getElementById('fb-insights-content');
+    
+    content.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    results.style.display = 'block';
+    
+    try {
+        const response = await fetch('/facebook-insights', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        let html = '';
+        if (data.insights && data.insights.length > 0) {
+            data.insights.forEach(insight => {
+                html += `
+                    <div class="card mb-2">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between">
+                                <span>${insight.name}</span>
+                                <strong class="text-primary">${insight.value}</strong>
+                            </div>
+                            <small class="text-muted">Period: ${insight.period}</small>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            html = '<div class="alert alert-info">No insights data available.</div>';
+        }
+        
+        content.innerHTML = html;
+        
+    } catch (error) {
+        content.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    }
+});
+
+// Instagram Insights Form
+document.getElementById('instagram-insights-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const results = document.getElementById('ig-results');
+    const content = document.getElementById('ig-insights-content');
+    
+    content.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    results.style.display = 'block';
+    
+    try {
+        const response = await fetch('/instagram-insights', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        let html = '';
+        if (data.insights && data.insights.length > 0) {
+            data.insights.forEach(insight => {
+                html += `
+                    <div class="card mb-2">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between">
+                                <span>${insight.name}</span>
+                                <strong class="text-danger">${insight.value}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            html = '<div class="alert alert-info">No insights data available.</div>';
+        }
+        
+        content.innerHTML = html;
+        
+    } catch (error) {
+        content.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    }
+});
+</script>
+{% endblock %}

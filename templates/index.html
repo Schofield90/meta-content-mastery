@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-gradient text-white p-5 rounded mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h1 class="display-4">Welcome to Meta Content Manager</h1>
+            <p class="lead">Create, schedule, and manage your Facebook and Instagram content from one place.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-primary mb-3">
+                    <i class="fab fa-facebook fa-3x"></i>
+                </div>
+                <h5 class="card-title">Facebook Pages</h5>
+                <p class="card-text">View and manage your Facebook pages and their settings.</p>
+                <a href="{{ url_for('pages') }}" class="btn btn-primary">
+                    <i class="fas fa-eye"></i> View Pages
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-success mb-3">
+                    <i class="fas fa-lightbulb fa-3x"></i>
+                </div>
+                <h5 class="card-title">Content Ideas</h5>
+                <p class="card-text">Generate creative content ideas for your social media posts.</p>
+                <a href="{{ url_for('create_content') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Create Content
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-warning mb-3">
+                    <i class="fas fa-paper-plane fa-3x"></i>
+                </div>
+                <h5 class="card-title">Post Content</h5>
+                <p class="card-text">Publish content directly to your Facebook pages and Instagram.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('post_facebook') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fab fa-facebook"></i> Facebook
+                    </a>
+                    <a href="{{ url_for('post_instagram') }}" class="btn btn-outline-danger btn-sm">
+                        <i class="fab fa-instagram"></i> Instagram
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-info mb-3">
+                    <i class="fas fa-chart-bar fa-3x"></i>
+                </div>
+                <h5 class="card-title">Analytics</h5>
+                <p class="card-text">Track performance and insights for your social media content.</p>
+                <a href="{{ url_for('analytics') }}" class="btn btn-info">
+                    <i class="fas fa-chart-line"></i> View Analytics
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-rocket"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('create_content') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-magic"></i> Generate Ideas
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('post_facebook') }}" class="btn btn-outline-success">
+                                <i class="fab fa-facebook"></i> Quick Post to Facebook
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('analytics') }}" class="btn btn-outline-info">
+                                <i class="fas fa-analytics"></i> Check Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

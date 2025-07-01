@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Facebook Pages - Meta Content Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fab fa-facebook"></i> Your Facebook Pages</h4>
+            </div>
+            <div class="card-body">
+                {% if pages %}
+                <div class="row">
+                    {% for page in pages %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary rounded-circle p-2 me-3">
+                                        <i class="fab fa-facebook text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="card-title mb-0">{{ page.name }}</h6>
+                                        <small class="text-muted">ID: {{ page.id }}</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <span class="badge bg-success">{{ page.category if page.category else 'Page' }}</span>
+                                    {% if page.tasks %}
+                                    <div class="mt-2">
+                                        <small class="text-muted">Permissions:</small>
+                                        {% for task in page.tasks %}
+                                        <span class="badge bg-light text-dark">{{ task }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('post_facebook') }}?page_id={{ page.id }}" 
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fas fa-paper-plane"></i> Post to This Page
+                                    </a>
+                                    <button class="btn btn-outline-info btn-sm" 
+                                            onclick="getPageInsights('{{ page.id }}', '{{ page.name }}')">
+                                        <i class="fas fa-chart-bar"></i> View Insights
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fab fa-facebook fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Facebook Pages Found</h5>
+                    <p class="text-muted">Make sure your access token has the required permissions to access your pages.</p>
+                    <div class="mt-4">
+                        <a href="https://developers.facebook.com/docs/pages/access-tokens" 
+                           class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Learn About Page Access Tokens
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if pages %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Page Management Tips</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Required Permissions</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> <code>pages_read_engagement</code></li>
+                            <li><i class="fas fa-check text-success"></i> <code>pages_manage_posts</code></li>
+                            <li><i class="fas fa-check text-success"></i> <code>pages_show_list</code></li>
+                            <li><i class="fas fa-check text-success"></i> <code>pages_read_user_content</code></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Quick Actions</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ url_for('post_facebook') }}" class="text-decoration-none">
+                                <i class="fas fa-paper-plane text-primary"></i> Create New Post
+                            </a></li>
+                            <li><a href="{{ url_for('analytics') }}" class="text-decoration-none">
+                                <i class="fas fa-chart-line text-info"></i> View Analytics Dashboard
+                            </a></li>
+                            <li><a href="{{ url_for('create_content') }}" class="text-decoration-none">
+                                <i class="fas fa-lightbulb text-success"></i> Generate Content Ideas
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Insights Modal -->
+<div class="modal fade" id="insightsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-chart-bar"></i> Page Insights: <span id="modal-page-name"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="insights-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading insights...</p>
+                </div>
+                <div id="insights-content" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function getPageInsights(pageId, pageName) {
+    const modal = new bootstrap.Modal(document.getElementById('insightsModal'));
+    const modalTitle = document.getElementById('modal-page-name');
+    const loading = document.getElementById('insights-loading');
+    const content = document.getElementById('insights-content');
+    
+    modalTitle.textContent = pageName;
+    loading.style.display = 'block';
+    content.style.display = 'none';
+    modal.show();
+    
+    try {
+        const formData = new FormData();
+        formData.append('page_id', pageId);
+        formData.append('metric', 'page_views');
+        formData.append('period', 'day');
+        
+        const response = await fetch('/facebook-insights', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        let insightsHtml = '<div class="row">';
+        
+        if (data.insights && data.insights.length > 0) {
+            data.insights.forEach(insight => {
+                insightsHtml += `
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5 class="text-primary">${insight.value}</h5>
+                                <p class="card-text">${insight.name}</p>
+                                <small class="text-muted">Period: ${insight.period}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            insightsHtml += `
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No insights data available for this page.
+                    </div>
+                </div>
+            `;
+        }
+        
+        insightsHtml += '</div>';
+        content.innerHTML = insightsHtml;
+        
+    } catch (error) {
+        content.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i> Error loading insights: ${error.message}
+            </div>
+        `;
+    } finally {
+        loading.style.display = 'none';
+        content.style.display = 'block';
+    }
+}
+</script>
+{% endblock %}
