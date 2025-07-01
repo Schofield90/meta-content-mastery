@@ -167,11 +167,33 @@ def post_facebook():
         return redirect(url_for('post_facebook'))
     
     try:
+        # First get the page access token
+        result = meta_api.make_api_request("me/accounts", "GET")
+        pages_data = result.get("data", [])
+        
+        page_access_token = None
+        for page in pages_data:
+            if page.get("id") == page_id:
+                page_access_token = page.get("access_token")
+                break
+        
+        if not page_access_token:
+            flash('Could not find access token for selected page', 'error')
+            return redirect(url_for('post_facebook'))
+        
+        # Use page access token for posting
+        url = f"{meta_api.base_url}/{page_id}/feed"
+        params = {'access_token': page_access_token}
         data = {"message": message}
         if link:
             data["link"] = link
         
-        result = meta_api.make_api_request(f"{page_id}/feed", "POST", data)
+        response = requests.post(url, params=params, data=data, timeout=25)
+        result = response.json()
+        
+        if response.status_code >= 400:
+            raise Exception(f"Meta API Error: {result.get('error', {}).get('message', 'Unknown error')}")
+        
         flash(f"Posted to Facebook! ID: {result.get('id', 'Unknown')}", 'success')
         return redirect(url_for('index'))
     except Exception as e:
