@@ -105,6 +105,11 @@ def create_content():
     """Content creation page"""
     return render_template('create_content.html')
 
+@app.route('/smart-post')
+def smart_post():
+    """Smart post creator page"""
+    return render_template('smart_post.html')
+
 @app.route('/generate-ideas', methods=['POST'])
 def generate_ideas():
     """Generate content ideas"""
@@ -180,6 +185,109 @@ def generate_image():
         
     except Exception as e:
         return jsonify({'error': f'Image generation failed: {str(e)}'}), 500
+
+@app.route('/create-smart-post', methods=['POST'])
+def create_smart_post():
+    """Create intelligent social media post with AI"""
+    try:
+        # Extract form data
+        topic = request.form.get('topic', '').strip()
+        platform = request.form.get('platform', 'both')
+        post_type = request.form.get('post_type', 'general')
+        business_name = request.form.get('business_name', 'your business')
+        target_audience = request.form.get('target_audience', 'fitness enthusiasts')
+        tone = request.form.get('tone', 'motivational')
+        call_to_action = request.form.get('call_to_action', '')
+        image_style = request.form.get('image_style', 'realistic')
+        generate_image = request.form.get('generate_image') == 'on'
+        
+        if not topic:
+            return jsonify({'error': 'Topic is required'}), 400
+        
+        if not openai.api_key:
+            return jsonify({'error': 'OpenAI API key not configured'}), 400
+        
+        # Generate content with OpenAI
+        content_prompt = f"""
+        Create a {tone} social media post for {platform} about: {topic}
+        
+        Context:
+        - Business: {business_name}
+        - Target audience: {target_audience}
+        - Post type: {post_type}
+        - Call to action: {call_to_action}
+        
+        Requirements:
+        - Write engaging copy that matches the {tone} tone
+        - Include relevant hashtags for {platform}
+        - Keep it appropriate for {target_audience}
+        - Make it actionable and engaging
+        
+        Format your response as:
+        COPY:
+        [The main post text here]
+        
+        HASHTAGS:
+        [Relevant hashtags here]
+        """
+        
+        # Generate copy with GPT
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an expert social media content creator specializing in fitness and wellness businesses."},
+                {"role": "user", "content": content_prompt}
+            ],
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        generated_content = response.choices[0].message.content
+        
+        # Parse the response
+        copy_start = generated_content.find("COPY:") + 5
+        hashtags_start = generated_content.find("HASHTAGS:")
+        
+        if hashtags_start == -1:
+            copy = generated_content[copy_start:].strip()
+            hashtags = ""
+        else:
+            copy = generated_content[copy_start:hashtags_start].strip()
+            hashtags = generated_content[hashtags_start + 9:].strip()
+        
+        result = {
+            'success': True,
+            'copy': copy,
+            'hashtags': hashtags,
+            'platform': platform,
+            'post_type': post_type
+        }
+        
+        # Generate image if requested
+        if generate_image:
+            try:
+                # Create image prompt based on the content
+                image_prompt = f"{topic}, {image_style} style, {business_name}, fitness, gym, {post_type}, high quality, social media"
+                
+                image_response = openai.Image.create(
+                    prompt=image_prompt,
+                    n=1,
+                    size="1024x1024",
+                    response_format="url"
+                )
+                
+                result['image_url'] = image_response['data'][0]['url']
+                result['image_prompt'] = image_prompt
+                
+            except Exception as img_error:
+                print(f"Image generation failed: {img_error}")
+                # Continue without image
+                pass
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'error': f'Smart post creation failed: {str(e)}'}), 500
 
 @app.route('/post-facebook', methods=['GET', 'POST'])
 def post_facebook():

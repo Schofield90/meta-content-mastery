@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Post Creator - Meta Content Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-gradient-primary text-white">
+                <h3 class="mb-0"><i class="fas fa-magic"></i> Smart Post Creator</h3>
+                <small>AI-powered content creation with copy, images, and auto-posting</small>
+            </div>
+            <div class="card-body">
+                <form id="smart-post-form">
+                    <!-- Main Topic Input -->
+                    <div class="mb-4">
+                        <label for="topic" class="form-label fs-5">What do you want to post about?</label>
+                        <textarea class="form-control form-control-lg" id="topic" name="topic" rows="3" 
+                                  placeholder="e.g., 'Motivation for people struggling to start their fitness journey' or 'New gym equipment arrival' or 'Client success story'..." required></textarea>
+                        <div class="form-text">Describe your topic, target audience, or goal for this post.</div>
+                    </div>
+
+                    <!-- Platform Selection -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="platform" class="form-label">Target Platform</label>
+                            <select class="form-select" id="platform" name="platform">
+                                <option value="facebook">Facebook</option>
+                                <option value="instagram">Instagram</option>
+                                <option value="both" selected>Both Platforms</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="post-type" class="form-label">Post Type</label>
+                            <select class="form-select" id="post-type" name="post_type">
+                                <option value="motivational">Motivational</option>
+                                <option value="educational">Educational/Tips</option>
+                                <option value="promotional">Promotional</option>
+                                <option value="behind-scenes">Behind the Scenes</option>
+                                <option value="client-success">Client Success</option>
+                                <option value="general">General Update</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Business Context -->
+                    <div class="mb-4">
+                        <label class="form-label">Business Context <small class="text-muted">(Optional - helps personalize content)</small></label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control mb-2" name="business_name" placeholder="Business name (e.g., Gym Lead Generation Hub)">
+                                <input type="text" class="form-control" name="target_audience" placeholder="Target audience (e.g., busy professionals, beginners)">
+                            </div>
+                            <div class="col-md-6">
+                                <select class="form-select mb-2" name="tone">
+                                    <option value="motivational">Motivational & Inspiring</option>
+                                    <option value="professional">Professional & Expert</option>
+                                    <option value="friendly">Friendly & Approachable</option>
+                                    <option value="energetic">Energetic & Enthusiastic</option>
+                                </select>
+                                <input type="text" class="form-control" name="call_to_action" placeholder="Desired action (e.g., book consultation, visit gym)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Generation Options -->
+                    <div class="mb-4">
+                        <label class="form-label">Image Style</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <select class="form-select" name="image_style">
+                                    <option value="realistic">Realistic Photo</option>
+                                    <option value="motivational">Motivational/Inspirational</option>
+                                    <option value="professional">Professional/Clean</option>
+                                    <option value="energetic">Dynamic/Energetic</option>
+                                    <option value="minimalist">Minimalist Design</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="auto-image" name="generate_image" checked>
+                                    <label class="form-check-label" for="auto-image">
+                                        Auto-generate matching image
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Posting Options -->
+                    <div class="mb-4">
+                        <label class="form-label">Publishing Options</label>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="publish_option" id="preview-only" value="preview" checked>
+                                    <label class="form-check-label" for="preview-only">
+                                        Preview Only
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="publish_option" id="post-now" value="now">
+                                    <label class="form-check-label" for="post-now">
+                                        Post Immediately
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="publish_option" id="schedule" value="schedule">
+                                    <label class="form-check-label" for="schedule">
+                                        Schedule for Later
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Date/Time (hidden by default) -->
+                    <div id="schedule-options" class="mb-4" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="date" class="form-control" name="schedule_date">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="time" class="form-control" name="schedule_time">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generate Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg py-3">
+                            <i class="fas fa-magic"></i> Create Smart Post
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="text-center mt-4" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Creating your content with AI...</p>
+            <small class="text-muted">This may take 10-30 seconds</small>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="mt-4" style="display: none;">
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-eye"></i> Generated Content Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Content Preview -->
+                        <div class="col-lg-8">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Generated Copy:</label>
+                                <div id="generated-copy" class="border rounded p-3 bg-light"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Hashtags:</label>
+                                <div id="generated-hashtags" class="border rounded p-2 bg-light"></div>
+                            </div>
+                        </div>
+                        <!-- Image Preview -->
+                        <div class="col-lg-4">
+                            <div id="image-container" style="display: none;">
+                                <label class="form-label fw-bold">Generated Image:</label>
+                                <img id="generated-image-preview" src="" alt="Generated Image" class="img-fluid rounded">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="mt-4 d-flex gap-2 flex-wrap">
+                        <button class="btn btn-success" id="publish-btn" onclick="publishPost()">
+                            <i class="fas fa-paper-plane"></i> Publish Now
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="regenerateContent()">
+                            <i class="fas fa-sync"></i> Regenerate
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="editContent()">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-outline-info" onclick="copyContent()">
+                            <i class="fas fa-copy"></i> Copy Text
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Show/hide schedule options
+document.querySelectorAll('input[name="publish_option"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const scheduleOptions = document.getElementById('schedule-options');
+        if (this.value === 'schedule') {
+            scheduleOptions.style.display = 'block';
+        } else {
+            scheduleOptions.style.display = 'none';
+        }
+    });
+});
+
+// Smart Post Form Handler
+document.getElementById('smart-post-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    
+    // Show loading
+    loading.style.display = 'block';
+    results.style.display = 'none';
+    
+    try {
+        const response = await fetch('/create-smart-post', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Display results
+        document.getElementById('generated-copy').innerHTML = data.copy.replace(/\n/g, '<br>');
+        document.getElementById('generated-hashtags').textContent = data.hashtags;
+        
+        // Show image if generated
+        if (data.image_url) {
+            document.getElementById('generated-image-preview').src = data.image_url;
+            document.getElementById('image-container').style.display = 'block';
+        }
+        
+        // Store data for publishing
+        window.currentPost = data;
+        
+        results.style.display = 'block';
+        
+    } catch (error) {
+        alert('Error creating post: ' + error.message);
+    } finally {
+        loading.style.display = 'none';
+    }
+});
+
+// Publishing functions
+function publishPost() {
+    if (window.currentPost) {
+        // Implementation for publishing
+        alert('Publishing functionality coming next!');
+    }
+}
+
+function regenerateContent() {
+    document.getElementById('smart-post-form').dispatchEvent(new Event('submit'));
+}
+
+function editContent() {
+    const copyDiv = document.getElementById('generated-copy');
+    const currentText = copyDiv.innerText;
+    copyDiv.innerHTML = `<textarea class="form-control" rows="6">${currentText}</textarea>`;
+}
+
+function copyContent() {
+    const copyText = document.getElementById('generated-copy').innerText;
+    const hashtagText = document.getElementById('generated-hashtags').innerText;
+    const fullText = copyText + '\n\n' + hashtagText;
+    
+    navigator.clipboard.writeText(fullText).then(function() {
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.classList.add('btn-success');
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('btn-success');
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}
