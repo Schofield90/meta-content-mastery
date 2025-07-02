@@ -29,7 +29,8 @@ SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 def create_google_flow():
     """Create Google OAuth flow"""
     # Use the current deployment URL for redirect
-    redirect_uri = "https://claude-meta-fbc2yibov-schofield90s-projects.vercel.app/oauth/google/callback"
+    base_url = os.getenv('VERCEL_URL', 'https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app')
+    redirect_uri = f"{base_url}/oauth/google/callback"
     
     flow = Flow.from_client_config(
         {
