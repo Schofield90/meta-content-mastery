@@ -17,7 +17,9 @@
       "Bash(npm install:*)",
       "Bash(vercel login:*)",
       "Bash(vercel:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git clone:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
