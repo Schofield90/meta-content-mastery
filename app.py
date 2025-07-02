@@ -5,14 +5,43 @@ Meta Content Manager - Simplified for Vercel
 
 import os
 import requests
-from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
+from flask import Flask, render_template, request, flash, redirect, url_for, jsonify, session
 from openai import OpenAI
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+import json
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'meta-content-manager-secret-key')
 
 # OpenAI configuration
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+# Google Drive configuration
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid_configuration"
+
+# OAuth 2.0 scopes for Google Drive
+SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
+
+def create_google_flow():
+    """Create Google OAuth flow"""
+    flow = Flow.from_client_config(
+        {
+            "web": {
+                "client_id": GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": [request.url_root + "oauth/google/callback"]
+            }
+        },
+        scopes=SCOPES
+    )
+    flow.redirect_uri = request.url_root + "oauth/google/callback"
+    return flow
 
 class MetaAPI:
     def __init__(self):
@@ -435,6 +464,154 @@ def get_training_context():
         'success': True,
         'context': context
     })
+
+# Google Drive OAuth Routes
+@app.route('/oauth/google/login')
+def google_login():
+    """Initiate Google OAuth flow"""
+    try:
+        flow = create_google_flow()
+        authorization_url, state = flow.authorization_url(
+            access_type='offline',
+            include_granted_scopes='true'
+        )
+        session['state'] = state
+        return redirect(authorization_url)
+    except Exception as e:
+        return jsonify({'error': f'OAuth login failed: {str(e)}'}), 500
+
+@app.route('/oauth/google/callback')
+def google_callback():
+    """Handle Google OAuth callback"""
+    try:
+        flow = create_google_flow()
+        flow.fetch_token(authorization_response=request.url)
+        
+        # Store credentials in session
+        credentials = flow.credentials
+        session['google_credentials'] = {
+            'token': credentials.token,
+            'refresh_token': credentials.refresh_token,
+            'token_uri': credentials.token_uri,
+            'client_id': credentials.client_id,
+            'client_secret': credentials.client_secret,
+            'scopes': credentials.scopes
+        }
+        
+        return redirect(url_for('ai_training') + '?google_connected=true')
+    except Exception as e:
+        return jsonify({'error': f'OAuth callback failed: {str(e)}'}), 500
+
+@app.route('/google-drive/folders')
+def get_google_drive_folders():
+    """Get folders from Google Drive"""
+    try:
+        if 'google_credentials' not in session:
+            return jsonify({'error': 'Not authenticated with Google'}), 401
+        
+        # Create credentials from session
+        creds = Credentials(**session['google_credentials'])
+        service = build('drive', 'v3', credentials=creds)
+        
+        # Get folders
+        results = service.files().list(
+            q="mimeType='application/vnd.google-apps.folder'",
+            pageSize=50,
+            fields="nextPageToken, files(id, name, parents)"
+        ).execute()
+        
+        folders = results.get('files', [])
+        
+        return jsonify({
+            'success': True,
+            'folders': folders
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to get folders: {str(e)}'}), 500
+
+@app.route('/google-drive/images')
+def get_google_drive_images():
+    """Get images from Google Drive"""
+    try:
+        if 'google_credentials' not in session:
+            return jsonify({'error': 'Not authenticated with Google'}), 401
+        
+        folder_id = request.args.get('folder_id', 'root')
+        
+        # Create credentials from session
+        creds = Credentials(**session['google_credentials'])
+        service = build('drive', 'v3', credentials=creds)
+        
+        # Get images
+        query = f"'{folder_id}' in parents and (mimeType contains 'image/')"
+        results = service.files().list(
+            q=query,
+            pageSize=50,
+            fields="nextPageToken, files(id, name, mimeType, thumbnailLink, webViewLink, size)"
+        ).execute()
+        
+        images = results.get('files', [])
+        
+        return jsonify({
+            'success': True,
+            'images': images
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to get images: {str(e)}'}), 500
+
+@app.route('/google-drive/image/<file_id>')
+def get_google_drive_image(file_id):
+    """Get specific image from Google Drive"""
+    try:
+        if 'google_credentials' not in session:
+            return jsonify({'error': 'Not authenticated with Google'}), 401
+        
+        # Create credentials from session
+        creds = Credentials(**session['google_credentials'])
+        service = build('drive', 'v3', credentials=creds)
+        
+        # Get file metadata
+        file_metadata = service.files().get(fileId=file_id).execute()
+        
+        # Get download link
+        download_link = f"https://drive.google.com/uc?id={file_id}&export=download"
+        
+        return jsonify({
+            'success': True,
+            'file': file_metadata,
+            'download_link': download_link
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to get image: {str(e)}'}), 500
+
+@app.route('/save-drive-image', methods=['POST'])
+def save_drive_image():
+    """Save Google Drive image to training library"""
+    try:
+        data = request.get_json()
+        
+        image_data = {
+            'filename': data.get('filename', ''),
+            'source': 'google_drive',
+            'file_id': data.get('file_id', ''),
+            'download_link': data.get('download_link', ''),
+            'category': data.get('category', 'google_drive'),
+            'timestamp': data.get('timestamp', ''),
+            'id': len(training_data['images']) + 1
+        }
+        
+        training_data['images'].append(image_data)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Google Drive image added to training library'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to save Drive image: {str(e)}'}), 500
 
 @app.route('/post-facebook', methods=['GET', 'POST'])
 def post_facebook():
