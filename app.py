@@ -6,13 +6,13 @@ Meta Content Manager - Simplified for Vercel
 import os
 import requests
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
-import openai
+from openai import OpenAI
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'meta-content-manager-secret-key')
 
 # OpenAI configuration
-openai.api_key = os.getenv('OPENAI_API_KEY')
+openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 class MetaAPI:
     def __init__(self):
@@ -161,21 +161,22 @@ def generate_image():
         if not prompt:
             return jsonify({'error': 'Image prompt is required'}), 400
         
-        if not openai.api_key:
+        if not openai_client.api_key:
             return jsonify({'error': 'OpenAI API key not configured'}), 400
         
         # Enhanced prompt for social media
         enhanced_prompt = f"{prompt}, {style} style, high quality, suitable for social media, professional"
         
         # Generate image using DALL-E
-        response = openai.Image.create(
+        response = openai_client.images.generate(
+            model="dall-e-3",
             prompt=enhanced_prompt,
             n=1,
             size="1024x1024",
             response_format="url"
         )
         
-        image_url = response['data'][0]['url']
+        image_url = response.data[0].url
         
         return jsonify({
             'success': True,
@@ -204,7 +205,7 @@ def create_smart_post():
         if not topic:
             return jsonify({'error': 'Topic is required'}), 400
         
-        if not openai.api_key:
+        if not openai_client.api_key:
             return jsonify({'error': 'OpenAI API key not configured'}), 400
         
         # Generate content with OpenAI
@@ -232,7 +233,7 @@ def create_smart_post():
         """
         
         # Generate copy with GPT
-        response = openai.ChatCompletion.create(
+        response = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are an expert social media content creator specializing in fitness and wellness businesses."},
@@ -269,14 +270,15 @@ def create_smart_post():
                 # Create image prompt based on the content
                 image_prompt = f"{topic}, {image_style} style, {business_name}, fitness, gym, {post_type}, high quality, social media"
                 
-                image_response = openai.Image.create(
+                image_response = openai_client.images.generate(
+                    model="dall-e-3",
                     prompt=image_prompt,
                     n=1,
                     size="1024x1024",
                     response_format="url"
                 )
                 
-                result['image_url'] = image_response['data'][0]['url']
+                result['image_url'] = image_response.data[0].url
                 result['image_prompt'] = image_prompt
                 
             except Exception as img_error:
