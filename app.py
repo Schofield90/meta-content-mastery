@@ -110,6 +110,11 @@ def smart_post():
     """Smart post creator page"""
     return render_template('smart_post.html')
 
+@app.route('/ai-training')
+def ai_training():
+    """AI training center page"""
+    return render_template('ai_training.html')
+
 @app.route('/generate-ideas', methods=['POST'])
 def generate_ideas():
     """Generate content ideas"""
@@ -208,21 +213,42 @@ def create_smart_post():
         if not openai_client.api_key:
             return jsonify({'error': 'OpenAI API key not configured'}), 400
         
+        # Get training context for personalization
+        profile = training_data.get('business_profile', {})
+        content_examples = training_data.get('content_library', [])[-3:]  # Last 3 posts
+        
+        # Build enhanced prompt with training data
+        training_context = ""
+        if profile:
+            training_context += f"\nBusiness Context:\n"
+            training_context += f"- Business: {profile.get('business_name', business_name)}\n"
+            training_context += f"- Industry: {profile.get('industry', 'fitness')}\n"
+            training_context += f"- Target Audience: {profile.get('target_audience', target_audience)}\n"
+            training_context += f"- Brand Voice: {profile.get('brand_voice', tone)}\n"
+            training_context += f"- Services: {profile.get('services', '')}\n"
+            training_context += f"- USP: {profile.get('usp', '')}\n"
+        
+        if content_examples:
+            training_context += f"\nSuccessful Content Examples:\n"
+            for example in content_examples:
+                training_context += f"- {example.get('post_content', '')[:100]}...\n"
+        
         # Generate content with OpenAI
         content_prompt = f"""
         Create a {tone} social media post for {platform} about: {topic}
         
+        {training_context}
+        
         Context:
-        - Business: {business_name}
-        - Target audience: {target_audience}
         - Post type: {post_type}
         - Call to action: {call_to_action}
         
         Requirements:
-        - Write engaging copy that matches the {tone} tone
+        - Write engaging copy that matches the brand voice and tone
         - Include relevant hashtags for {platform}
-        - Keep it appropriate for {target_audience}
+        - Keep it appropriate for the target audience
         - Make it actionable and engaging
+        - Use similar style and voice as the successful examples if provided
         
         Format your response as:
         COPY:
@@ -290,6 +316,125 @@ def create_smart_post():
         
     except Exception as e:
         return jsonify({'error': f'Smart post creation failed: {str(e)}'}), 500
+
+# AI Training System - In-memory storage for now (would use database in production)
+training_data = {
+    'business_profile': {},
+    'content_library': [],
+    'images': [],
+    'documents': []
+}
+
+@app.route('/save-business-profile', methods=['POST'])
+def save_business_profile():
+    """Save business profile for AI training"""
+    try:
+        # Extract form data
+        profile = {
+            'business_name': request.form.get('business_name', ''),
+            'industry': request.form.get('industry', ''),
+            'location': request.form.get('location', ''),
+            'target_audience': request.form.get('target_audience', ''),
+            'brand_voice': request.form.get('brand_voice', ''),
+            'services': request.form.get('services', ''),
+            'usp': request.form.get('usp', ''),
+            'goals': request.form.getlist('goals[]')
+        }
+        
+        # Store in training data
+        training_data['business_profile'] = profile
+        
+        return jsonify({'success': True, 'message': 'Business profile saved successfully'})
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to save business profile: {str(e)}'}), 500
+
+@app.route('/save-content', methods=['POST'])
+def save_content():
+    """Save content to training library"""
+    try:
+        content = {
+            'post_content': request.form.get('post_content', ''),
+            'platform': request.form.get('platform', ''),
+            'performance': request.form.get('performance', ''),
+            'timestamp': request.form.get('timestamp', ''),
+            'id': len(training_data['content_library']) + 1
+        }
+        
+        # Store in content library
+        training_data['content_library'].append(content)
+        
+        return jsonify({'success': True, 'message': 'Content added to library'})
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to save content: {str(e)}'}), 500
+
+@app.route('/upload-images', methods=['POST'])
+def upload_images():
+    """Handle image uploads for AI training"""
+    try:
+        if 'images' not in request.files:
+            return jsonify({'error': 'No images provided'}), 400
+        
+        files = request.files.getlist('images')
+        category = request.form.get('category', 'general')
+        
+        uploaded_images = []
+        for file in files:
+            if file and file.filename:
+                # In production, you'd save to cloud storage
+                # For now, we'll just store metadata
+                image_data = {
+                    'filename': file.filename,
+                    'category': category,
+                    'size': len(file.read()),
+                    'timestamp': request.form.get('timestamp', ''),
+                    'id': len(training_data['images']) + 1
+                }
+                training_data['images'].append(image_data)
+                uploaded_images.append(image_data)
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Uploaded {len(uploaded_images)} images',
+            'images': uploaded_images
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to upload images: {str(e)}'}), 500
+
+@app.route('/get-saved-content')
+def get_saved_content():
+    """Get saved content from training library"""
+    return jsonify({
+        'success': True,
+        'content': training_data['content_library']
+    })
+
+@app.route('/get-uploaded-images')
+def get_uploaded_images():
+    """Get uploaded images from training library"""
+    return jsonify({
+        'success': True,
+        'images': training_data['images']
+    })
+
+@app.route('/get-training-context')
+def get_training_context():
+    """Get all training context for AI personalization"""
+    # Build comprehensive context for AI
+    context = {
+        'business_profile': training_data['business_profile'],
+        'content_examples': training_data['content_library'][-5:],  # Last 5 posts
+        'image_categories': list(set([img['category'] for img in training_data['images']])),
+        'total_content': len(training_data['content_library']),
+        'total_images': len(training_data['images'])
+    }
+    
+    return jsonify({
+        'success': True,
+        'context': context
+    })
 
 @app.route('/post-facebook', methods=['GET', 'POST'])
 def post_facebook():

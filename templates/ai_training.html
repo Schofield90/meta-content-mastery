@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+
+{% block title %}AI Training Center - Meta Content Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-gradient-info text-white">
+                <h3 class="mb-0"><i class="fas fa-brain"></i> AI Training Center</h3>
+                <small>Train your AI to understand your business, brand, and content style</small>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="nav flex-column nav-pills" id="training-tabs" role="tablist">
+                            <button class="nav-link active" id="business-tab" data-bs-toggle="pill" data-bs-target="#business" type="button" role="tab">
+                                <i class="fas fa-building"></i> Business Profile
+                            </button>
+                            <button class="nav-link" id="content-tab" data-bs-toggle="pill" data-bs-target="#content" type="button" role="tab">
+                                <i class="fas fa-file-text"></i> Content Library
+                            </button>
+                            <button class="nav-link" id="images-tab" data-bs-toggle="pill" data-bs-target="#images" type="button" role="tab">
+                                <i class="fas fa-images"></i> Image Gallery
+                            </button>
+                            <button class="nav-link" id="drive-tab" data-bs-toggle="pill" data-bs-target="#drive" type="button" role="tab">
+                                <i class="fab fa-google-drive"></i> Google Drive
+                            </button>
+                            <button class="nav-link" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" type="button" role="tab">
+                                <i class="fas fa-chart-bar"></i> Content Analysis
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="tab-content" id="training-content">
+                            <!-- Business Profile Tab -->
+                            <div class="tab-pane fade show active" id="business" role="tabpanel">
+                                <h5><i class="fas fa-building"></i> Business Profile & Brand Guidelines</h5>
+                                <p class="text-muted">Tell the AI about your business so it can create perfectly targeted content.</p>
+                                
+                                <form id="business-profile-form">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Business Name</label>
+                                                <input type="text" class="form-control" name="business_name" placeholder="e.g., Gym Lead Generation Hub">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Industry/Niche</label>
+                                                <input type="text" class="form-control" name="industry" placeholder="e.g., Fitness, Personal Training, Gym">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Location</label>
+                                                <input type="text" class="form-control" name="location" placeholder="e.g., Manchester, UK">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Target Audience</label>
+                                                <textarea class="form-control" name="target_audience" rows="2" placeholder="e.g., Busy professionals aged 25-45, beginners to fitness, weight loss goals"></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Brand Voice & Tone</label>
+                                                <select class="form-select" name="brand_voice">
+                                                    <option value="motivational">Motivational & Inspiring</option>
+                                                    <option value="professional">Professional & Expert</option>
+                                                    <option value="friendly">Friendly & Approachable</option>
+                                                    <option value="energetic">Energetic & Enthusiastic</option>
+                                                    <option value="supportive">Supportive & Encouraging</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Services Offered</label>
+                                        <textarea class="form-control" name="services" rows="3" placeholder="e.g., Personal Training, Group Classes, Nutrition Coaching, Online Programs"></textarea>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Unique Selling Points</label>
+                                        <textarea class="form-control" name="usp" rows="3" placeholder="e.g., 24/7 access, certified trainers, proven results, supportive community"></textarea>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Content Goals</label>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="goals[]" value="lead_generation" id="goal1">
+                                                    <label class="form-check-label" for="goal1">Generate Leads</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="goals[]" value="brand_awareness" id="goal2">
+                                                    <label class="form-check-label" for="goal2">Build Brand Awareness</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="goals[]" value="education" id="goal3">
+                                                    <label class="form-check-label" for="goal3">Educate Audience</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="goals[]" value="community" id="goal4">
+                                                    <label class="form-check-label" for="goal4">Build Community</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="goals[]" value="sales" id="goal5">
+                                                    <label class="form-check-label" for="goal5">Drive Sales</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="goals[]" value="retention" id="goal6">
+                                                    <label class="form-check-label" for="goal6">Client Retention</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-info">
+                                        <i class="fas fa-save"></i> Save Business Profile
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Content Library Tab -->
+                            <div class="tab-pane fade" id="content" role="tabpanel">
+                                <h5><i class="fas fa-file-text"></i> Content Library</h5>
+                                <p class="text-muted">Upload successful posts, competitor content, and other text-based materials for AI learning.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6><i class="fas fa-thumbs-up"></i> Successful Posts</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <form id="successful-posts-form">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Post Content</label>
+                                                        <textarea class="form-control" name="post_content" rows="4" placeholder="Paste your high-performing post content here..."></textarea>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Platform</label>
+                                                                <select class="form-select" name="platform">
+                                                                    <option value="facebook">Facebook</option>
+                                                                    <option value="instagram">Instagram</option>
+                                                                    <option value="linkedin">LinkedIn</option>
+                                                                    <option value="twitter">Twitter</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Performance</label>
+                                                                <select class="form-select" name="performance">
+                                                                    <option value="high">High Engagement</option>
+                                                                    <option value="medium">Medium Engagement</option>
+                                                                    <option value="viral">Viral/Trending</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="fas fa-plus"></i> Add to Library
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6><i class="fas fa-file-upload"></i> Document Upload</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Upload Documents</label>
+                                                    <input type="file" class="form-control" id="document-upload" multiple accept=".pdf,.doc,.docx,.txt">
+                                                    <div class="form-text">Brand guidelines, service descriptions, testimonials, etc.</div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Document Type</label>
+                                                    <select class="form-select">
+                                                        <option value="brand_guidelines">Brand Guidelines</option>
+                                                        <option value="service_description">Service Description</option>
+                                                        <option value="testimonials">Client Testimonials</option>
+                                                        <option value="competitor_analysis">Competitor Analysis</option>
+                                                        <option value="other">Other</option>
+                                                    </select>
+                                                </div>
+                                                <button class="btn btn-primary">
+                                                    <i class="fas fa-upload"></i> Upload Documents
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Saved Content List -->
+                                <div class="mt-4">
+                                    <h6>Saved Content</h6>
+                                    <div id="saved-content-list" class="row">
+                                        <!-- Dynamic content will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Image Gallery Tab -->
+                            <div class="tab-pane fade" id="images" role="tabpanel">
+                                <h5><i class="fas fa-images"></i> Image Gallery</h5>
+                                <p class="text-muted">Upload your gym photos, client transformations, and other visual content for AI reference.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="mb-4">
+                                                    <label class="form-label">Upload Images</label>
+                                                    <input type="file" class="form-control" id="image-upload" multiple accept="image/*">
+                                                    <div class="form-text">Upload gym photos, equipment, client transformations, before/after shots</div>
+                                                </div>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Image Category</label>
+                                                            <select class="form-select" id="image-category">
+                                                                <option value="gym_interior">Gym Interior</option>
+                                                                <option value="equipment">Equipment</option>
+                                                                <option value="classes">Group Classes</option>
+                                                                <option value="transformations">Client Transformations</option>
+                                                                <option value="trainers">Trainers/Staff</option>
+                                                                <option value="exterior">Gym Exterior</option>
+                                                                <option value="events">Events/Activities</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Usage Rights</label>
+                                                            <select class="form-select">
+                                                                <option value="full_rights">Full Rights (Own/Permission)</option>
+                                                                <option value="social_only">Social Media Only</option>
+                                                                <option value="reference_only">Reference Only</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <button class="btn btn-primary" onclick="uploadImages()">
+                                                    <i class="fas fa-upload"></i> Upload Images
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Image Gallery Display -->
+                                <div class="mt-4" id="image-gallery">
+                                    <h6>Uploaded Images</h6>
+                                    <div class="row" id="gallery-grid">
+                                        <!-- Images will be displayed here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Google Drive Tab -->
+                            <div class="tab-pane fade" id="drive" role="tabpanel">
+                                <h5><i class="fab fa-google-drive"></i> Google Drive Integration</h5>
+                                <p class="text-muted">Connect your Google Drive to automatically access your gym photos and documents.</p>
+                                
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fab fa-google-drive fa-4x text-primary mb-3"></i>
+                                        <h5>Connect Google Drive</h5>
+                                        <p class="text-muted">Access your photos directly from Google Drive for content creation.</p>
+                                        
+                                        <div id="drive-not-connected">
+                                            <button class="btn btn-primary btn-lg" onclick="connectGoogleDrive()">
+                                                <i class="fab fa-google"></i> Connect Google Drive
+                                            </button>
+                                            <div class="mt-3">
+                                                <small class="text-muted">We'll only access folders you specifically share with us</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="drive-connected" style="display: none;">
+                                            <div class="alert alert-success">
+                                                <i class="fas fa-check-circle"></i> Google Drive Connected Successfully!
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6>Select Folders to Monitor</h6>
+                                                    <div id="drive-folders">
+                                                        <!-- Drive folders will be listed here -->
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6>Recent Files</h6>
+                                                    <div id="drive-recent-files">
+                                                        <!-- Recent files will be listed here -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Content Analysis Tab -->
+                            <div class="tab-pane fade" id="analytics" role="tabpanel">
+                                <h5><i class="fas fa-chart-bar"></i> Content Analysis</h5>
+                                <p class="text-muted">AI-powered insights about your content patterns and suggestions for improvement.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6><i class="fas fa-brain"></i> AI Insights</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div id="ai-insights">
+                                                    <div class="text-center text-muted">
+                                                        <i class="fas fa-chart-line fa-3x mb-3"></i>
+                                                        <p>Upload more content to see AI insights</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6><i class="fas fa-lightbulb"></i> Content Suggestions</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div id="content-suggestions">
+                                                    <div class="text-center text-muted">
+                                                        <i class="fas fa-lightbulb fa-3x mb-3"></i>
+                                                        <p>AI will suggest content based on your uploads</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Training Progress -->
+                                <div class="mt-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6><i class="fas fa-graduation-cap"></i> AI Training Progress</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-3 text-center">
+                                                    <h4 class="text-info" id="content-count">0</h4>
+                                                    <small class="text-muted">Content Pieces</small>
+                                                </div>
+                                                <div class="col-md-3 text-center">
+                                                    <h4 class="text-success" id="image-count">0</h4>
+                                                    <small class="text-muted">Images</small>
+                                                </div>
+                                                <div class="col-md-3 text-center">
+                                                    <h4 class="text-warning" id="document-count">0</h4>
+                                                    <small class="text-muted">Documents</small>
+                                                </div>
+                                                <div class="col-md-3 text-center">
+                                                    <h4 class="text-primary" id="training-score">0%</h4>
+                                                    <small class="text-muted">Training Score</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Business Profile Form
+document.getElementById('business-profile-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    try {
+        const response = await fetch('/save-business-profile', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            showToast('Business profile saved successfully!', 'success');
+        } else {
+            showToast('Error saving profile: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showToast('Error saving profile: ' + error.message, 'error');
+    }
+});
+
+// Successful Posts Form
+document.getElementById('successful-posts-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    try {
+        const response = await fetch('/save-content', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            showToast('Content added to library!', 'success');
+            this.reset();
+            loadSavedContent();
+        } else {
+            showToast('Error saving content: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showToast('Error saving content: ' + error.message, 'error');
+    }
+});
+
+// Image Upload
+function uploadImages() {
+    const fileInput = document.getElementById('image-upload');
+    const category = document.getElementById('image-category').value;
+    
+    if (!fileInput.files.length) {
+        showToast('Please select images to upload', 'warning');
+        return;
+    }
+    
+    const formData = new FormData();
+    for (let file of fileInput.files) {
+        formData.append('images', file);
+    }
+    formData.append('category', category);
+    
+    fetch('/upload-images', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Images uploaded successfully!', 'success');
+            loadImageGallery();
+        } else {
+            showToast('Error uploading images: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Error uploading images: ' + error.message, 'error');
+    });
+}
+
+// Google Drive Integration
+function connectGoogleDrive() {
+    // This would implement Google Drive OAuth
+    showToast('Google Drive integration coming soon!', 'info');
+}
+
+// Utility Functions
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast show position-fixed top-0 end-0 m-3`;
+    toast.innerHTML = `
+        <div class="toast-body bg-${type === 'error' ? 'danger' : type} text-white">
+            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i> ${message}
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        document.body.removeChild(toast);
+    }, 3000);
+}
+
+function loadSavedContent() {
+    // Load and display saved content
+    fetch('/get-saved-content')
+    .then(response => response.json())
+    .then(data => {
+        // Update saved content list
+        console.log('Saved content loaded', data);
+    });
+}
+
+function loadImageGallery() {
+    // Load and display uploaded images
+    fetch('/get-uploaded-images')
+    .then(response => response.json())
+    .then(data => {
+        // Update image gallery
+        console.log('Image gallery loaded', data);
+    });
+}
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadSavedContent();
+    loadImageGallery();
+});
+</script>
+{% endblock %}
