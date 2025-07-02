@@ -6,9 +6,13 @@ Meta Content Manager - Simplified for Vercel
 import os
 import requests
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
+import openai
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'meta-content-manager-secret-key')
+
+# OpenAI configuration
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 class MetaAPI:
     def __init__(self):
@@ -141,6 +145,41 @@ def generate_ideas():
         return jsonify({'ideas': ideas})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/generate-image', methods=['POST'])
+def generate_image():
+    """Generate AI image for social media posts"""
+    try:
+        prompt = request.form.get('prompt', '').strip()
+        style = request.form.get('style', 'realistic')
+        
+        if not prompt:
+            return jsonify({'error': 'Image prompt is required'}), 400
+        
+        if not openai.api_key:
+            return jsonify({'error': 'OpenAI API key not configured'}), 400
+        
+        # Enhanced prompt for social media
+        enhanced_prompt = f"{prompt}, {style} style, high quality, suitable for social media, professional"
+        
+        # Generate image using DALL-E
+        response = openai.Image.create(
+            prompt=enhanced_prompt,
+            n=1,
+            size="1024x1024",
+            response_format="url"
+        )
+        
+        image_url = response['data'][0]['url']
+        
+        return jsonify({
+            'success': True,
+            'image_url': image_url,
+            'prompt': enhanced_prompt
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Image generation failed: {str(e)}'}), 500
 
 @app.route('/post-facebook', methods=['GET', 'POST'])
 def post_facebook():
