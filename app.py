@@ -28,6 +28,9 @@ SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 
 def create_google_flow():
     """Create Google OAuth flow"""
+    # Use the current deployment URL for redirect
+    redirect_uri = "https://claude-meta-fbc2yibov-schofield90s-projects.vercel.app/oauth/google/callback"
+    
     flow = Flow.from_client_config(
         {
             "web": {
@@ -35,12 +38,12 @@ def create_google_flow():
                 "client_secret": GOOGLE_CLIENT_SECRET,
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
-                "redirect_uris": [request.url_root + "oauth/google/callback"]
+                "redirect_uris": [redirect_uri]
             }
         },
         scopes=SCOPES
     )
-    flow.redirect_uri = request.url_root + "oauth/google/callback"
+    flow.redirect_uri = redirect_uri
     return flow
 
 class MetaAPI:
