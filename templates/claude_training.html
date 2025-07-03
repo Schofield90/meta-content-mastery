@@ -263,20 +263,12 @@
                             <div class="card-body">
                                 <form id="knowledge-form">
                                     <div class="mb-3">
-                                        <label class="form-label">Knowledge Category</label>
-                                        <select class="form-select" id="knowledge-category" required>
-                                            <option value="">Select a category...</option>
-                                            <option value="business_basics">Business Basics</option>
-                                            <option value="services">Services & Programs</option>
-                                            <option value="target_audience">Target Audience</option>
-                                            <option value="brand_voice">Brand Voice & Messaging</option>
-                                            <option value="success_stories">Success Stories & Testimonials</option>
-                                            <option value="pricing">Pricing & Packages</option>
-                                            <option value="competition">Competition & USP</option>
-                                            <option value="marketing">Marketing Strategies</option>
-                                            <option value="operations">Operations & Policies</option>
-                                            <option value="team">Team & Culture</option>
-                                        </select>
+                                        <label class="form-label">Auto-Category <small class="text-muted">(Claude will categorize this automatically)</small></label>
+                                        <input type="text" class="form-control" id="knowledge-category" 
+                                               placeholder="Claude will auto-categorize based on your content..." readonly>
+                                        <div class="form-text">
+                                            <i class="fas fa-robot"></i> Claude analyzes your content and assigns the most appropriate category automatically
+                                        </div>
                                     </div>
                                     
                                     <div class="mb-3">
@@ -469,12 +461,66 @@ document.addEventListener('DOMContentLoaded', function() {
     updateKnowledgeCoverage();
 });
 
+// Auto-categorization function
+let categorizationTimeout;
+function autoCategorizeContent() {
+    const title = document.getElementById('knowledge-title').value;
+    const content = document.getElementById('knowledge-content').value;
+    const categoryField = document.getElementById('knowledge-category');
+    
+    // Only categorize if we have some content
+    if (title.length < 3 && content.length < 10) {
+        categoryField.value = '';
+        return;
+    }
+    
+    // Clear previous timeout
+    clearTimeout(categorizationTimeout);
+    
+    // Debounce the API call
+    categorizationTimeout = setTimeout(() => {
+        categoryField.value = 'Analyzing...';
+        
+        fetch('/auto-categorize-knowledge', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                categoryField.value = result.category_display;
+                categoryField.dataset.category = result.category;
+            } else {
+                categoryField.value = 'Business Basics';
+                categoryField.dataset.category = 'business_basics';
+            }
+        })
+        .catch(error => {
+            categoryField.value = 'Business Basics';
+            categoryField.dataset.category = 'business_basics';
+        });
+    }, 1000); // Wait 1 second after user stops typing
+}
+
+// Add event listeners for auto-categorization
+document.getElementById('knowledge-title').addEventListener('input', autoCategorizeContent);
+document.getElementById('knowledge-content').addEventListener('input', autoCategorizeContent);
+
 // Teach Claude functions
 document.getElementById('knowledge-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
+    const categoryField = document.getElementById('knowledge-category');
+    const category = categoryField.dataset.category || 'business_basics';
+    
     const knowledgeData = {
-        category: document.getElementById('knowledge-category').value,
+        category: category,
         title: document.getElementById('knowledge-title').value,
         content: document.getElementById('knowledge-content').value,
         importance: document.getElementById('importance-level').value,

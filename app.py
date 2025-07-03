@@ -525,6 +525,99 @@ def get_training_context():
     })
 
 # Claude Training Hub Routes
+@app.route('/auto-categorize-knowledge', methods=['POST'])
+def auto_categorize_knowledge():
+    """Automatically categorize knowledge content using AI"""
+    try:
+        data = request.get_json()
+        title = data.get('title', '')
+        content = data.get('content', '')
+        
+        if not title and not content:
+            return jsonify({'success': False, 'error': 'Title or content required'}), 400
+        
+        # Create prompt for categorization
+        categorization_prompt = f"""
+        Analyze this business information and assign it to the most appropriate category.
+        
+        Title: {title}
+        Content: {content}
+        
+        Choose the MOST APPROPRIATE category from these options:
+        - business_basics: Company overview, mission, vision, founding story
+        - services: Products, programs, offerings, what you provide
+        - target_audience: Who your customers are, demographics, personas
+        - brand_voice: Tone, messaging style, communication approach
+        - success_stories: Testimonials, case studies, client wins
+        - pricing: Costs, packages, membership tiers, payment options
+        - competition: Competitors, differentiators, unique selling points
+        - marketing: Advertising strategies, social media, campaigns
+        - operations: Policies, procedures, how things work
+        - team: Staff, culture, leadership, company values
+        
+        Respond with ONLY the category name (e.g., "services" or "target_audience").
+        """
+        
+        if openai_client.api_key:
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an expert business analyst. Categorize business information accurately and concisely."},
+                    {"role": "user", "content": categorization_prompt}
+                ],
+                max_tokens=50,
+                temperature=0.1
+            )
+            
+            category = response.choices[0].message.content.strip().lower()
+            
+            # Validate category is one of our expected ones
+            valid_categories = [
+                'business_basics', 'services', 'target_audience', 'brand_voice',
+                'success_stories', 'pricing', 'competition', 'marketing', 
+                'operations', 'team'
+            ]
+            
+            if category not in valid_categories:
+                # Default to business_basics if categorization fails
+                category = 'business_basics'
+            
+            # Convert to display format
+            category_display = category.replace('_', ' ').title()
+            
+            return jsonify({
+                'success': True,
+                'category': category,
+                'category_display': category_display
+            })
+        else:
+            # Fallback categorization based on keywords
+            content_lower = (title + ' ' + content).lower()
+            
+            if any(word in content_lower for word in ['service', 'program', 'offer', 'class', 'training']):
+                category = 'services'
+            elif any(word in content_lower for word in ['customer', 'client', 'audience', 'member']):
+                category = 'target_audience'
+            elif any(word in content_lower for word in ['price', 'cost', 'membership', 'package']):
+                category = 'pricing'
+            elif any(word in content_lower for word in ['team', 'staff', 'trainer', 'employee']):
+                category = 'team'
+            elif any(word in content_lower for word in ['brand', 'voice', 'tone', 'message']):
+                category = 'brand_voice'
+            else:
+                category = 'business_basics'
+            
+            category_display = category.replace('_', ' ').title()
+            
+            return jsonify({
+                'success': True,
+                'category': category,
+                'category_display': category_display
+            })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/save-claude-knowledge', methods=['POST'])
 def save_claude_knowledge():
     """Save knowledge to Claude's training database"""
@@ -539,10 +632,6 @@ def save_claude_knowledge():
             'timestamp': data.get('timestamp', '')
         }
         
-        # Generate unique ID
-        import uuid
-        knowledge_item['id'] = str(uuid.uuid4())
-        
         # Try to save to Supabase first
         if supabase_manager.is_available():
             saved_id = supabase_manager.save_claude_knowledge(knowledge_item)
@@ -553,6 +642,9 @@ def save_claude_knowledge():
         if 'claude_knowledge' not in fallback_training_data:
             fallback_training_data['claude_knowledge'] = []
         
+        # Generate unique ID for fallback storage
+        import uuid
+        knowledge_item['id'] = str(uuid.uuid4())
         fallback_training_data['claude_knowledge'].append(knowledge_item)
         
         return jsonify({'success': True, 'message': 'Knowledge saved successfully (fallback)', 'id': knowledge_item['id']})
