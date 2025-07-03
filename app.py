@@ -149,6 +149,11 @@ def ai_training():
     """AI training center page"""
     return render_template('ai_training.html')
 
+@app.route('/bulk-upload')
+def bulk_upload():
+    """Bulk image upload page"""
+    return render_template('bulk_upload.html')
+
 @app.route('/generate-ideas', methods=['POST'])
 def generate_ideas():
     """Generate content ideas"""
