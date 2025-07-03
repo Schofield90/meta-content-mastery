@@ -43,8 +43,8 @@ Meta Content Manager is a Flask-based web application that integrates with Meta'
 
 1. **🤖 Train Claude for Your Business** (15 minutes)
    - Go to `/claude-training` in your app
-   - Add knowledge about Atlas Gyms in "Teach Claude" tab
-   - Fill in business basics, services, target audience, brand voice
+   - Add knowledge about Gym Lead Hub in "Teach Claude" tab
+   - Fill in coaching services, target gym owners, marketing strategies
    - Test Claude's knowledge with the assessment feature
    - Chat with Claude to see how it responds with your business context
 
@@ -196,7 +196,7 @@ git push origin main
 ## Contact & Support
 - Developer: Sam Schofield
 - Email: samschofield90@hotmail.co.uk
-- Business: Atlas Gyms (atlas-gyms.co.uk)
+- Business: Gym Lead Hub (Coaching for Gym Owners)
 
 ---
 

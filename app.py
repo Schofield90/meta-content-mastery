@@ -538,21 +538,21 @@ def auto_categorize_knowledge():
         
         # Create prompt for categorization
         categorization_prompt = f"""
-        Analyze this business information and assign it to the most appropriate category.
+        Analyze this business information for Gym Lead Hub (a coaching business for gym owners) and assign it to the most appropriate category.
         
         Title: {title}
         Content: {content}
         
         Choose the MOST APPROPRIATE category from these options:
         - business_basics: Company overview, mission, vision, founding story
-        - services: Products, programs, offerings, what you provide
-        - target_audience: Who your customers are, demographics, personas
+        - services: Coaching programs, marketing services, what you provide to gym owners
+        - target_audience: Gym owners, fitness entrepreneurs, your ideal clients
         - brand_voice: Tone, messaging style, communication approach
-        - success_stories: Testimonials, case studies, client wins
-        - pricing: Costs, packages, membership tiers, payment options
-        - competition: Competitors, differentiators, unique selling points
-        - marketing: Advertising strategies, social media, campaigns
-        - operations: Policies, procedures, how things work
+        - success_stories: Client testimonials, case studies, gym owner wins
+        - pricing: Coaching packages, service costs, membership tiers
+        - competition: Other gym coaching services, differentiators, unique selling points
+        - marketing: Lead generation strategies, social media for gyms, advertising
+        - operations: Coaching processes, procedures, how things work
         - team: Staff, culture, leadership, company values
         
         Respond with ONLY the category name (e.g., "services" or "target_audience").
@@ -591,19 +591,23 @@ def auto_categorize_knowledge():
                 'category_display': category_display
             })
         else:
-            # Fallback categorization based on keywords
+            # Fallback categorization based on keywords for gym coaching business
             content_lower = (title + ' ' + content).lower()
             
-            if any(word in content_lower for word in ['service', 'program', 'offer', 'class', 'training']):
+            if any(word in content_lower for word in ['coaching', 'program', 'service', 'marketing', 'lead generation', 'advertising']):
                 category = 'services'
-            elif any(word in content_lower for word in ['customer', 'client', 'audience', 'member']):
+            elif any(word in content_lower for word in ['gym owner', 'client', 'audience', 'fitness entrepreneur', 'target']):
                 category = 'target_audience'
-            elif any(word in content_lower for word in ['price', 'cost', 'membership', 'package']):
+            elif any(word in content_lower for word in ['price', 'cost', 'package', 'fee', 'investment']):
                 category = 'pricing'
-            elif any(word in content_lower for word in ['team', 'staff', 'trainer', 'employee']):
+            elif any(word in content_lower for word in ['team', 'staff', 'coach', 'employee']):
                 category = 'team'
-            elif any(word in content_lower for word in ['brand', 'voice', 'tone', 'message']):
+            elif any(word in content_lower for word in ['brand', 'voice', 'tone', 'message', 'communication']):
                 category = 'brand_voice'
+            elif any(word in content_lower for word in ['testimonial', 'case study', 'success', 'result', 'win']):
+                category = 'success_stories'
+            elif any(word in content_lower for word in ['competitor', 'competition', 'unique', 'different']):
+                category = 'competition'
             else:
                 category = 'business_basics'
             
@@ -835,8 +839,8 @@ def chat_with_claude():
         
         # Build context from business profile
         if profile:
-            business_context += f"Business: {profile.get('business_name', 'Atlas Gyms')}\n"
-            business_context += f"Industry: {profile.get('industry', 'Fitness')}\n"
+            business_context += f"Business: {profile.get('business_name', 'Gym Lead Hub')}\n"
+            business_context += f"Industry: {profile.get('industry', 'Gym Owner Coaching & Marketing')}\n"
             business_context += f"Services: {profile.get('services', '')}\n"
             business_context += f"Target Audience: {profile.get('target_audience', '')}\n"
             business_context += f"Brand Voice: {profile.get('brand_voice', '')}\n"
