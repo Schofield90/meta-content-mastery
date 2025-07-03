@@ -27,34 +27,43 @@ Meta Content Manager is a Flask-based web application that integrates with Meta'
 ### ✅ **COMPLETED FEATURES:**
 1. **Supabase Integration** - Persistent database and image storage
 2. **Bulk Upload Page** - Professional drag & drop interface at `/bulk-upload`
-3. **Google Drive Removal** - Eliminated all OAuth complexity 
-4. **Environment Setup** - All required variables configured in Vercel
-5. **Database Schema** - Tables created and ready for data
+3. **Claude AI Training Hub** - Complete training interface at `/claude-training`
+4. **Google Drive Removal** - Eliminated all OAuth complexity 
+5. **Environment Setup** - All required variables configured in Vercel
+6. **Database Schema** - Tables created and ready for data
 
 ### 🚀 **READY TO USE:**
 - **Bulk Upload**: `https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app/bulk-upload`
+- **Claude Training Hub**: `https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app/claude-training`
 - **AI Training**: Upload images → Build content library → Generate better posts
 - **Categories**: Workouts, Equipment, Testimonials, Facility, etc.
 - **Persistent Storage**: All data survives app restarts
 
 ### 📋 **NEXT STEPS (When You Pick This Up):**
 
-1. **✅ Test Bulk Upload** (5 minutes)
+1. **🤖 Train Claude for Your Business** (15 minutes)
+   - Go to `/claude-training` in your app
+   - Add knowledge about Atlas Gyms in "Teach Claude" tab
+   - Fill in business basics, services, target audience, brand voice
+   - Test Claude's knowledge with the assessment feature
+   - Chat with Claude to see how it responds with your business context
+
+2. **✅ Test Bulk Upload** (5 minutes)
    - Go to `/bulk-upload` in your app
    - Drag & drop 10-20 gym images
    - Verify they upload to Supabase successfully
    - Check different categories work
 
-2. **🎯 Train Your AI** (30 minutes) 
+3. **🎯 Train Your AI** (30 minutes) 
    - Upload 50+ images across categories
    - Fill out business profile in AI Training
    - Add successful social media posts to content library
    - Test Smart Post Creator with your training data
 
-3. **📈 Scale Content Creation** (Ongoing)
+4. **📈 Scale Content Creation** (Ongoing)
    - Use Smart Post Creator for daily content
    - Build library of high-performing posts
-   - Train AI with more successful content
+   - Train Claude with more business knowledge
    - Export to Meta platforms
 
 ### 🔧 **If Issues Arise:**
@@ -88,6 +97,7 @@ SUPABASE_ANON_KEY=[Your Supabase Anon Key]
 ### Main Features
 - **Content Creation**: AI-powered social media content generation
 - **Smart Posts**: Intelligent post creation with business context
+- **Claude Training Hub**: Train Claude specifically about your business with knowledge assessment
 - **AI Training**: Business profile and content library management
 - **Supabase Storage**: Image upload and management
 - **Social Media Posting**: Direct posting to Facebook and Instagram
@@ -139,11 +149,14 @@ SUPABASE_ANON_KEY=[Your Supabase Anon Key]
 ### Quick Health Check
 - **App URL**: `https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app`
 - **Health Check**: `https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app/health`
+- **Claude Training Hub**: `https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app/claude-training`
 - **Bulk Upload**: `https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app/bulk-upload`
 
 ### Success Indicators
 - ✅ Health endpoint shows version 2.1+
+- ✅ "Claude Training Hub" appears in navigation menu
 - ✅ "Bulk Upload" appears in navigation menu
+- ✅ Claude Training Hub loads with 4 tabs: Teach Claude, Test Knowledge, Knowledge Base, Chat
 - ✅ Bulk upload page loads with drag & drop interface
 - ✅ Images upload successfully to Supabase
 
