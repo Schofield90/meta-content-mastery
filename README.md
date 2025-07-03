@@ -37,21 +37,24 @@ Meta Content Manager is a Flask-based web application that integrates with Meta'
 
 ### 🛠️ Immediate Next Steps
 
-1. **Complete OAuth Consent Screen** (HIGH PRIORITY)
-   - Fill in required fields mentioned above
-   - Create placeholder privacy policy and terms pages
-   - Add test users to test the OAuth flow
-   - Set publishing status to "Testing"
+1. **✅ COMPLETED: Supabase Integration** 
+   - Added persistent database and image storage
+   - Replaced in-memory storage with Supabase
+   - Includes fallback for when Supabase is unavailable
 
-2. **Create Missing Pages**
-   - Create `/privacy` route and template
-   - Create `/terms` route and template
-   - These can be simple placeholder pages initially
+2. **Set up Supabase** (NEW PRIORITY)
+   - Create Supabase project and run SQL schema
+   - Add SUPABASE_URL and SUPABASE_ANON_KEY to Vercel
+   - Test image uploads and data persistence
 
-3. **Test OAuth Flow**
-   - Once consent screen is configured, wait 5-10 minutes for propagation
-   - Test Google Drive authentication in the AI Training section
-   - Verify successful OAuth callback
+3. **Complete OAuth Consent Screen** (SECONDARY)
+   - Google OAuth can be ignored now that Supabase handles storage
+   - Only needed if you want Google Drive integration specifically
+
+4. **Test Application**
+   - Deploy updated version with Supabase
+   - Test AI training features with persistent storage
+   - Verify image uploads work correctly
 
 ## Environment Variables
 
@@ -64,7 +67,17 @@ META_ACCESS_TOKEN=[Your Meta Access Token]
 META_APP_ID=1667446050583846
 SECRET_KEY=[Your Flask Secret Key]
 VERCEL_URL=https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app
+SUPABASE_URL=[Your Supabase Project URL]
+SUPABASE_ANON_KEY=[Your Supabase Anon Key]
 ```
+
+### Supabase Setup (NEW)
+1. **Create Supabase project** at [supabase.com](https://supabase.com)
+2. **Run SQL schema** from `supabase_setup.sql` in your Supabase SQL Editor
+3. **Get credentials** from Project Settings > API:
+   - Project URL → `SUPABASE_URL`
+   - Anon public key → `SUPABASE_ANON_KEY`
+4. **Add to Vercel** environment variables
 
 ## Application Structure
 

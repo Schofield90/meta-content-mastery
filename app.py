@@ -11,6 +11,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 import json
+from supabase_client import supabase_manager
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'meta-content-manager-secret-key')
@@ -246,9 +247,14 @@ def create_smart_post():
         if not openai_client.api_key:
             return jsonify({'error': 'OpenAI API key not configured'}), 400
         
-        # Get training context for personalization
-        profile = training_data.get('business_profile', {})
-        content_examples = training_data.get('content_library', [])[-3:]  # Last 3 posts
+        # Get training context for personalization from Supabase or fallback
+        if supabase_manager.is_available():
+            training_context_data = supabase_manager.get_training_context()
+            profile = training_context_data.get('business_profile', {})
+            content_examples = training_context_data.get('content_examples', [])[-3:]  # Last 3 posts
+        else:
+            profile = fallback_training_data.get('business_profile', {})
+            content_examples = fallback_training_data.get('content_library', [])[-3:]  # Last 3 posts
         
         # Build enhanced prompt with training data
         training_context = ""
@@ -350,8 +356,9 @@ def create_smart_post():
     except Exception as e:
         return jsonify({'error': f'Smart post creation failed: {str(e)}'}), 500
 
-# AI Training System - In-memory storage for now (would use database in production)
-training_data = {
+# AI Training System - Using Supabase for persistent storage
+# Fallback in-memory storage for when Supabase is not available
+fallback_training_data = {
     'business_profile': {},
     'content_library': [],
     'images': [],
@@ -374,10 +381,15 @@ def save_business_profile():
             'goals': request.form.getlist('goals[]')
         }
         
-        # Store in training data
-        training_data['business_profile'] = profile
+        # Try to save to Supabase first
+        if supabase_manager.is_available():
+            business_id = supabase_manager.save_business_profile(profile)
+            if business_id:
+                return jsonify({'success': True, 'message': 'Business profile saved successfully', 'business_id': business_id})
         
-        return jsonify({'success': True, 'message': 'Business profile saved successfully'})
+        # Fallback to in-memory storage
+        fallback_training_data['business_profile'] = profile
+        return jsonify({'success': True, 'message': 'Business profile saved successfully (fallback storage)'})
         
     except Exception as e:
         return jsonify({'error': f'Failed to save business profile: {str(e)}'}), 500
@@ -390,21 +402,27 @@ def save_content():
             'post_content': request.form.get('post_content', ''),
             'platform': request.form.get('platform', ''),
             'performance': request.form.get('performance', ''),
-            'timestamp': request.form.get('timestamp', ''),
-            'id': len(training_data['content_library']) + 1
         }
         
-        # Store in content library
-        training_data['content_library'].append(content)
+        # Try to save to Supabase first
+        if supabase_manager.is_available():
+            content_id = supabase_manager.save_content(content)
+            if content_id:
+                return jsonify({'success': True, 'message': 'Content added to library', 'content_id': content_id})
         
-        return jsonify({'success': True, 'message': 'Content added to library'})
+        # Fallback to in-memory storage
+        content['id'] = len(fallback_training_data['content_library']) + 1
+        content['timestamp'] = request.form.get('timestamp', '')
+        fallback_training_data['content_library'].append(content)
+        
+        return jsonify({'success': True, 'message': 'Content added to library (fallback storage)'})
         
     except Exception as e:
         return jsonify({'error': f'Failed to save content: {str(e)}'}), 500
 
 @app.route('/upload-images', methods=['POST'])
 def upload_images():
-    """Handle image uploads for AI training"""
+    """Handle image uploads for AI training with Supabase storage"""
     try:
         if 'images' not in request.files:
             return jsonify({'error': 'No images provided'}), 400
@@ -415,21 +433,49 @@ def upload_images():
         uploaded_images = []
         for file in files:
             if file and file.filename:
-                # In production, you'd save to cloud storage
-                # For now, we'll just store metadata
+                file_data = file.read()
+                
+                # Try to upload to Supabase storage
+                if supabase_manager.is_available():
+                    # Upload to Supabase storage
+                    public_url = supabase_manager.upload_image(
+                        file_data=file_data,
+                        filename=f"{category}_{file.filename}",
+                        content_type=file.content_type or 'image/jpeg'
+                    )
+                    
+                    if public_url:
+                        # Save metadata to database
+                        image_data = {
+                            'filename': file.filename,
+                            'storage_path': public_url,
+                            'category': category,
+                            'source': 'upload',
+                            'file_size': len(file_data)
+                        }
+                        
+                        image_id = supabase_manager.save_image_metadata(image_data)
+                        if image_id:
+                            image_data['id'] = image_id
+                            image_data['url'] = public_url
+                            uploaded_images.append(image_data)
+                            continue
+                
+                # Fallback to in-memory storage
                 image_data = {
                     'filename': file.filename,
                     'category': category,
-                    'size': len(file.read()),
-                    'timestamp': request.form.get('timestamp', ''),
-                    'id': len(training_data['images']) + 1
+                    'size': len(file_data),
+                    'source': 'upload_fallback',
+                    'id': len(fallback_training_data['images']) + 1
                 }
-                training_data['images'].append(image_data)
+                fallback_training_data['images'].append(image_data)
                 uploaded_images.append(image_data)
         
+        storage_type = 'Supabase' if supabase_manager.is_available() else 'fallback'
         return jsonify({
             'success': True, 
-            'message': f'Uploaded {len(uploaded_images)} images',
+            'message': f'Uploaded {len(uploaded_images)} images to {storage_type} storage',
             'images': uploaded_images
         })
         
@@ -439,29 +485,58 @@ def upload_images():
 @app.route('/get-saved-content')
 def get_saved_content():
     """Get saved content from training library"""
+    if supabase_manager.is_available():
+        content = supabase_manager.get_content_library()
+        return jsonify({
+            'success': True,
+            'content': content,
+            'source': 'supabase'
+        })
+    
+    # Fallback to in-memory storage
     return jsonify({
         'success': True,
-        'content': training_data['content_library']
+        'content': fallback_training_data['content_library'],
+        'source': 'fallback'
     })
 
 @app.route('/get-uploaded-images')
 def get_uploaded_images():
     """Get uploaded images from training library"""
+    if supabase_manager.is_available():
+        images = supabase_manager.get_training_images()
+        return jsonify({
+            'success': True,
+            'images': images,
+            'source': 'supabase'
+        })
+    
+    # Fallback to in-memory storage
     return jsonify({
         'success': True,
-        'images': training_data['images']
+        'images': fallback_training_data['images'],
+        'source': 'fallback'
     })
 
 @app.route('/get-training-context')
 def get_training_context():
     """Get all training context for AI personalization"""
-    # Build comprehensive context for AI
+    if supabase_manager.is_available():
+        context = supabase_manager.get_training_context()
+        context['source'] = 'supabase'
+        return jsonify({
+            'success': True,
+            'context': context
+        })
+    
+    # Fallback to in-memory storage
     context = {
-        'business_profile': training_data['business_profile'],
-        'content_examples': training_data['content_library'][-5:],  # Last 5 posts
-        'image_categories': list(set([img['category'] for img in training_data['images']])),
-        'total_content': len(training_data['content_library']),
-        'total_images': len(training_data['images'])
+        'business_profile': fallback_training_data['business_profile'],
+        'content_examples': fallback_training_data['content_library'][-5:],  # Last 5 posts
+        'image_categories': list(set([img.get('category', 'general') for img in fallback_training_data['images']])),
+        'total_content': len(fallback_training_data['content_library']),
+        'total_images': len(fallback_training_data['images']),
+        'source': 'fallback'
     }
     
     return jsonify({
