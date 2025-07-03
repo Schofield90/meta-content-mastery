@@ -38,18 +38,33 @@ CREATE TABLE training_images (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 4. Enable Row Level Security (RLS) for multi-tenancy
+-- 4. Claude Knowledge Table
+CREATE TABLE claude_knowledge (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    business_id UUID REFERENCES business_profiles(id) ON DELETE CASCADE,
+    category TEXT NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    importance TEXT DEFAULT 'important',
+    timestamp TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 5. Enable Row Level Security (RLS) for multi-tenancy
 ALTER TABLE business_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE content_library ENABLE ROW LEVEL SECURITY;
 ALTER TABLE training_images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE claude_knowledge ENABLE ROW LEVEL SECURITY;
 
--- 5. Create policies for public access (you can make these more restrictive later)
+-- 6. Create policies for public access (you can make these more restrictive later)
 CREATE POLICY "Allow all access to business_profiles" ON business_profiles FOR ALL USING (true);
 CREATE POLICY "Allow all access to content_library" ON content_library FOR ALL USING (true);
 CREATE POLICY "Allow all access to training_images" ON training_images FOR ALL USING (true);
+CREATE POLICY "Allow all access to claude_knowledge" ON claude_knowledge FOR ALL USING (true);
 
--- 6. Create storage bucket for images
+-- 7. Create storage bucket for images
 INSERT INTO storage.buckets (id, name, public) VALUES ('training-images', 'training-images', true);
 
--- 7. Storage policy for images
+-- 8. Storage policy for images
 CREATE POLICY "Allow all access to training images bucket" ON storage.objects FOR ALL USING (bucket_id = 'training-images');

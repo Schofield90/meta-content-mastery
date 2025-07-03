@@ -201,6 +201,63 @@ class SupabaseManager:
                 'total_content': 0,
                 'total_images': 0
             }
+    
+    # Claude Knowledge Management Methods
+    def save_claude_knowledge(self, knowledge_data: Dict[str, Any], business_id: Optional[str] = None) -> Optional[str]:
+        """Save Claude knowledge item"""
+        if not self.is_available():
+            return None
+        
+        try:
+            # Get business ID if not provided
+            if not business_id:
+                profile = self.get_business_profile()
+                business_id = profile.get('id') if profile else None
+            
+            if business_id:
+                knowledge_data['business_id'] = business_id
+            
+            response = self.client.table('claude_knowledge').insert(knowledge_data).execute()
+            if response.data:
+                return response.data[0]['id']
+            return None
+        except Exception as e:
+            logging.error(f"Error saving Claude knowledge: {e}")
+            return None
+    
+    def get_claude_knowledge(self, category: Optional[str] = None, business_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get Claude knowledge items"""
+        if not self.is_available():
+            return []
+        
+        try:
+            query = self.client.table('claude_knowledge').select('*').order('created_at', desc=True)
+            
+            if business_id:
+                query = query.eq('business_id', business_id)
+            
+            if category:
+                query = query.eq('category', category)
+            
+            response = query.execute()
+            return response.data or []
+        except Exception as e:
+            logging.error(f"Error getting Claude knowledge: {e}")
+            return []
+    
+    def get_claude_knowledge_by_id(self, knowledge_id: str) -> Optional[Dict[str, Any]]:
+        """Get specific Claude knowledge item by ID"""
+        if not self.is_available():
+            return None
+        
+        try:
+            response = self.client.table('claude_knowledge').select('*').eq('id', knowledge_id).execute()
+            if response.data:
+                return response.data[0]
+            return None
+        except Exception as e:
+            logging.error(f"Error getting Claude knowledge by ID: {e}")
+            return None
 
 
 # Global instance

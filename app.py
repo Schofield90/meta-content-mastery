@@ -124,6 +124,11 @@ def bulk_upload():
     """Bulk image upload page"""
     return render_template('bulk_upload.html')
 
+@app.route('/claude-training')
+def claude_training():
+    """Claude AI Training Hub page"""
+    return render_template('claude_training.html')
+
 @app.route('/generate-ideas', methods=['POST'])
 def generate_ideas():
     """Generate content ideas"""
@@ -518,6 +523,305 @@ def get_training_context():
         'success': True,
         'context': context
     })
+
+# Claude Training Hub Routes
+@app.route('/save-claude-knowledge', methods=['POST'])
+def save_claude_knowledge():
+    """Save knowledge to Claude's training database"""
+    try:
+        data = request.get_json()
+        
+        knowledge_item = {
+            'category': data.get('category', ''),
+            'title': data.get('title', ''),
+            'content': data.get('content', ''),
+            'importance': data.get('importance', 'important'),
+            'timestamp': data.get('timestamp', '')
+        }
+        
+        # Generate unique ID
+        import uuid
+        knowledge_item['id'] = str(uuid.uuid4())
+        
+        # Try to save to Supabase first
+        if supabase_manager.is_available():
+            saved_id = supabase_manager.save_claude_knowledge(knowledge_item)
+            if saved_id:
+                return jsonify({'success': True, 'message': 'Knowledge saved successfully', 'id': saved_id})
+        
+        # Fallback to in-memory storage
+        if 'claude_knowledge' not in fallback_training_data:
+            fallback_training_data['claude_knowledge'] = []
+        
+        fallback_training_data['claude_knowledge'].append(knowledge_item)
+        
+        return jsonify({'success': True, 'message': 'Knowledge saved successfully (fallback)', 'id': knowledge_item['id']})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/assess-claude-knowledge', methods=['POST'])
+def assess_claude_knowledge():
+    """Assess Claude's knowledge about the business"""
+    try:
+        # Get all knowledge items
+        knowledge_items = []
+        if supabase_manager.is_available():
+            knowledge_items = supabase_manager.get_claude_knowledge()
+        else:
+            knowledge_items = fallback_training_data.get('claude_knowledge', [])
+        
+        # Calculate knowledge score based on coverage and depth
+        total_categories = 10  # Expected categories
+        covered_categories = set()
+        total_items = len(knowledge_items)
+        critical_items = 0
+        important_items = 0
+        
+        for item in knowledge_items:
+            covered_categories.add(item.get('category', ''))
+            importance = item.get('importance', 'useful')
+            if importance == 'critical':
+                critical_items += 1
+            elif importance == 'important':
+                important_items += 1
+        
+        # Scoring algorithm
+        category_coverage = len(covered_categories) / total_categories * 100
+        content_depth = min(100, (critical_items * 15 + important_items * 10 + (total_items - critical_items - important_items) * 5))
+        
+        overall_score = int((category_coverage * 0.4) + (content_depth * 0.6))
+        
+        # Generate assessment text
+        if overall_score >= 80:
+            assessment = "Excellent! Claude has comprehensive knowledge about your business."
+        elif overall_score >= 60:
+            assessment = "Good knowledge base. Claude understands your business well."
+        elif overall_score >= 40:
+            assessment = "Fair knowledge. Claude needs more training about your business."
+        else:
+            assessment = "Limited knowledge. Claude needs significant training to understand your business."
+        
+        return jsonify({
+            'success': True,
+            'score': overall_score,
+            'assessment': assessment,
+            'details': {
+                'total_items': total_items,
+                'categories_covered': len(covered_categories),
+                'critical_items': critical_items,
+                'important_items': important_items
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/generate-claude-test', methods=['POST'])
+def generate_claude_test():
+    """Generate test questions for Claude's knowledge"""
+    try:
+        data = request.get_json()
+        category = data.get('category', 'random')
+        
+        # Get knowledge items for the category
+        knowledge_items = []
+        if supabase_manager.is_available():
+            knowledge_items = supabase_manager.get_claude_knowledge(category if category != 'random' else None)
+        else:
+            all_items = fallback_training_data.get('claude_knowledge', [])
+            if category == 'random':
+                knowledge_items = all_items
+            else:
+                knowledge_items = [item for item in all_items if item.get('category') == category]
+        
+        # Generate questions based on knowledge
+        questions = []
+        import random
+        
+        for i, item in enumerate(random.sample(knowledge_items, min(5, len(knowledge_items)))):
+            question_types = [
+                f"What do you know about {item.get('title', 'this topic')}?",
+                f"How would you describe {item.get('title', 'this aspect')} of the business?",
+                f"What makes {item.get('title', 'this feature')} important for the business?",
+                f"Can you explain {item.get('title', 'this topic')} in your own words?"
+            ]
+            
+            questions.append({
+                'id': f"q_{i}_{item.get('id', 'unknown')}",
+                'question': random.choice(question_types),
+                'category': item.get('category', 'general'),
+                'knowledge_id': item.get('id')
+            })
+        
+        return jsonify({
+            'success': True,
+            'questions': questions
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/answer-claude-test', methods=['POST'])
+def answer_claude_test():
+    """Get Claude's answer to a test question"""
+    try:
+        data = request.get_json()
+        question_id = data.get('question_id', '')
+        
+        # Extract knowledge ID from question ID
+        if '_' in question_id:
+            knowledge_id = question_id.split('_')[-1]
+        else:
+            knowledge_id = None
+        
+        # Get the specific knowledge item
+        knowledge_item = None
+        if supabase_manager.is_available():
+            knowledge_item = supabase_manager.get_claude_knowledge_by_id(knowledge_id)
+        else:
+            all_items = fallback_training_data.get('claude_knowledge', [])
+            for item in all_items:
+                if item.get('id') == knowledge_id:
+                    knowledge_item = item
+                    break
+        
+        if not knowledge_item:
+            return jsonify({'success': False, 'error': 'Knowledge item not found'}), 404
+        
+        # Generate answer based on the knowledge
+        answer = knowledge_item.get('content', 'I don\'t have specific information about this topic.')
+        
+        # Calculate confidence based on content length and importance
+        content_length = len(answer.split())
+        importance = knowledge_item.get('importance', 'useful')
+        
+        if importance == 'critical':
+            base_confidence = 90
+        elif importance == 'important':
+            base_confidence = 75
+        else:
+            base_confidence = 60
+        
+        # Adjust confidence based on content depth
+        if content_length > 50:
+            confidence = min(95, base_confidence + 10)
+        elif content_length > 20:
+            confidence = base_confidence
+        else:
+            confidence = max(40, base_confidence - 15)
+        
+        return jsonify({
+            'success': True,
+            'answer': answer,
+            'confidence': confidence,
+            'category': knowledge_item.get('category', 'general')
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/chat-with-claude', methods=['POST'])
+def chat_with_claude():
+    """Chat with Claude using business knowledge"""
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '')
+        
+        if not user_message:
+            return jsonify({'success': False, 'error': 'Message is required'}), 400
+        
+        # Get business context
+        business_context = ""
+        if supabase_manager.is_available():
+            context_data = supabase_manager.get_training_context()
+            profile = context_data.get('business_profile', {})
+            knowledge_items = supabase_manager.get_claude_knowledge()
+        else:
+            profile = fallback_training_data.get('business_profile', {})
+            knowledge_items = fallback_training_data.get('claude_knowledge', [])
+        
+        # Build context from business profile
+        if profile:
+            business_context += f"Business: {profile.get('business_name', 'Atlas Gyms')}\n"
+            business_context += f"Industry: {profile.get('industry', 'Fitness')}\n"
+            business_context += f"Services: {profile.get('services', '')}\n"
+            business_context += f"Target Audience: {profile.get('target_audience', '')}\n"
+            business_context += f"Brand Voice: {profile.get('brand_voice', '')}\n"
+        
+        # Add relevant knowledge items
+        relevant_knowledge = []
+        for item in knowledge_items:
+            if any(keyword in user_message.lower() for keyword in item.get('title', '').lower().split()):
+                relevant_knowledge.append(item.get('content', ''))
+        
+        # Create prompt for Claude
+        system_prompt = f"""You are Claude, an AI assistant that has been trained specifically about this business. 
+        
+Business Context:
+{business_context}
+
+Relevant Knowledge:
+{' '.join(relevant_knowledge[:3])}
+
+Respond as if you are well-informed about this business. Be helpful, accurate, and match the brand voice when possible."""
+        
+        # Generate response using OpenAI (simulating Claude)
+        if openai_client.api_key:
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                max_tokens=300,
+                temperature=0.7
+            )
+            
+            claude_response = response.choices[0].message.content
+        else:
+            claude_response = "I understand you're asking about the business. Unfortunately, I need the OpenAI API key to be configured to provide detailed responses."
+        
+        return jsonify({
+            'success': True,
+            'response': claude_response,
+            'context_used': len(relevant_knowledge) > 0
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/get-claude-knowledge')
+def get_claude_knowledge():
+    """Get all Claude knowledge items"""
+    try:
+        if supabase_manager.is_available():
+            knowledge_items = supabase_manager.get_claude_knowledge()
+        else:
+            knowledge_items = fallback_training_data.get('claude_knowledge', [])
+        
+        return jsonify({
+            'success': True,
+            'knowledge': knowledge_items
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/get-claude-test-scores')
+def get_claude_test_scores():
+    """Get historical test scores"""
+    try:
+        # For now, generate sample scores - in production this would be stored
+        sample_scores = [65, 72, 78, 85, 82, 88, 92]
+        
+        return jsonify({
+            'success': True,
+            'scores': sample_scores
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # Google Drive OAuth routes removed - now using Supabase for image storage
 
