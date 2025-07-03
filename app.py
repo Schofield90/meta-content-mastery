@@ -82,7 +82,7 @@ def index():
 @app.route('/health')
 def health():
     """Health check"""
-    return jsonify({'status': 'ok', 'app': 'Meta Content Manager', 'version': '2.0', 'bulk_upload': 'enabled'})
+    return jsonify({'status': 'ok', 'app': 'Meta Content Manager', 'version': '2.1', 'bulk_upload': 'enabled', 'timestamp': 'July 2025'})
 
 @app.route('/test')
 def test():
