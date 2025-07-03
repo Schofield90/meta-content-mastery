@@ -9,31 +9,18 @@ Meta Content Manager is a Flask-based web application that integrates with Meta'
 - Flask web application with multiple routes for content creation
 - Meta API integration for Facebook and Instagram posting
 - OpenAI integration for AI content generation and image creation
-- Google Drive OAuth integration for image management
+- Supabase integration for persistent image storage
 - AI training system with business profile and content library
 - Vercel deployment configuration
 
-### 🚨 Current Issue: Google OAuth "Access blocked: authorisation error"
-**Status**: IN PROGRESS - OAuth consent screen needs configuration
+### ✅ Issue Resolved: Google Drive Integration Removed
+**Status**: COMPLETED - Replaced Google Drive with Supabase storage
 
-**Problem**: 
-- Error 400: invalid_request
-- App doesn't comply with Google's OAuth 2.0 policy
-
-**Solution**: Complete OAuth consent screen setup in Google Cloud Console
-
-**Required OAuth Consent Screen Fields** (CRITICAL):
-1. **Application home page**: `https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app`
-2. **Application privacy policy link**: `https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app/privacy`
-3. **Application terms of service link**: `https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app/terms`
-4. **Authorized domains**: `vercel.app`
-
-**Google OAuth Configuration**:
-- Client ID: `1071902930073-as763hgtkglfvj1ag9jeuonus4pvdlqc.apps.googleusercontent.com`
-- Client Secret: `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`
-- Redirect URIs: 
-  - `https://claude-meta-99sce5xcm-schofield90s-projects.vercel.app/oauth/google/callback`
-  - `https://meta-content-mastery-766ozocne-schofield90s-projects.vercel.app/oauth/google/callback`
+**Solution**: 
+- Removed all Google OAuth complexity
+- Using Supabase for persistent image storage
+- No more OAuth consent screen issues
+- Direct image uploads with public URLs
 
 ### 🛠️ Immediate Next Steps
 
@@ -47,9 +34,9 @@ Meta Content Manager is a Flask-based web application that integrates with Meta'
    - Add SUPABASE_URL and SUPABASE_ANON_KEY to Vercel
    - Test image uploads and data persistence
 
-3. **Complete OAuth Consent Screen** (SECONDARY)
-   - Google OAuth can be ignored now that Supabase handles storage
-   - Only needed if you want Google Drive integration specifically
+3. **✅ COMPLETED: Removed Google Drive Integration**
+   - Eliminated OAuth complexity entirely
+   - All image storage now handled by Supabase
 
 4. **Test Application**
    - Deploy updated version with Supabase
@@ -60,8 +47,6 @@ Meta Content Manager is a Flask-based web application that integrates with Meta'
 
 ### Vercel Environment Variables (Required)
 ```
-GOOGLE_CLIENT_ID=1071902930073-as763hgtkglfvj1ag9jeuonus4pvdlqc.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
 OPENAI_API_KEY=[Your OpenAI API Key]
 META_ACCESS_TOKEN=[Your Meta Access Token]
 META_APP_ID=1667446050583846
@@ -85,7 +70,7 @@ SUPABASE_ANON_KEY=[Your Supabase Anon Key]
 - **Content Creation**: AI-powered social media content generation
 - **Smart Posts**: Intelligent post creation with business context
 - **AI Training**: Business profile and content library management
-- **Google Drive Integration**: Image access and management
+- **Supabase Storage**: Image upload and management
 - **Social Media Posting**: Direct posting to Facebook and Instagram
 - **Analytics**: Performance insights and metrics
 
@@ -99,7 +84,7 @@ SUPABASE_ANON_KEY=[Your Supabase Anon Key]
 ### API Integrations
 1. **Meta Graph API**: Facebook and Instagram posting, analytics
 2. **OpenAI API**: Content generation and image creation (DALL-E)
-3. **Google Drive API**: Image access and training data management
+3. **Supabase API**: Database and image storage management
 
 ## Deployment
 

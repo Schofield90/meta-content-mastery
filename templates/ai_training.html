@@ -23,9 +23,6 @@
                             <button class="nav-link" id="images-tab" data-bs-toggle="pill" data-bs-target="#images" type="button" role="tab">
                                 <i class="fas fa-images"></i> Image Gallery
                             </button>
-                            <button class="nav-link" id="drive-tab" data-bs-toggle="pill" data-bs-target="#drive" type="button" role="tab">
-                                <i class="fab fa-google-drive"></i> Google Drive
-                            </button>
                             <button class="nav-link" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" type="button" role="tab">
                                 <i class="fas fa-chart-bar"></i> Content Analysis
                             </button>
@@ -269,49 +266,6 @@
                                 </div>
                             </div>
 
-                            <!-- Google Drive Tab -->
-                            <div class="tab-pane fade" id="drive" role="tabpanel">
-                                <h5><i class="fab fa-google-drive"></i> Google Drive Integration</h5>
-                                <p class="text-muted">Connect your Google Drive to automatically access your gym photos and documents.</p>
-                                
-                                <div class="card">
-                                    <div class="card-body text-center">
-                                        <i class="fab fa-google-drive fa-4x text-primary mb-3"></i>
-                                        <h5>Connect Google Drive</h5>
-                                        <p class="text-muted">Access your photos directly from Google Drive for content creation.</p>
-                                        
-                                        <div id="drive-not-connected">
-                                            <button class="btn btn-primary btn-lg" onclick="connectGoogleDrive()">
-                                                <i class="fab fa-google"></i> Connect Google Drive
-                                            </button>
-                                            <div class="mt-3">
-                                                <small class="text-muted">We'll only access folders you specifically share with us</small>
-                                            </div>
-                                        </div>
-                                        
-                                        <div id="drive-connected" style="display: none;">
-                                            <div class="alert alert-success">
-                                                <i class="fas fa-check-circle"></i> Google Drive Connected Successfully!
-                                            </div>
-                                            
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <h6>Select Folders to Monitor</h6>
-                                                    <div id="drive-folders">
-                                                        <!-- Drive folders will be listed here -->
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <h6>Recent Files</h6>
-                                                    <div id="drive-recent-files">
-                                                        <!-- Recent files will be listed here -->
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
                             <!-- Content Analysis Tab -->
                             <div class="tab-pane fade" id="analytics" role="tabpanel">
@@ -472,140 +426,7 @@ function uploadImages() {
     });
 }
 
-// Google Drive Integration
-function connectGoogleDrive() {
-    window.location.href = '/oauth/google/login';
-}
-
-// Check if Google Drive was just connected
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('google_connected') === 'true') {
-        showToast('Google Drive connected successfully!', 'success');
-        showDriveConnected();
-        loadDriveFolders();
-    }
-    
-    loadSavedContent();
-    loadImageGallery();
-});
-
-function showDriveConnected() {
-    document.getElementById('drive-not-connected').style.display = 'none';
-    document.getElementById('drive-connected').style.display = 'block';
-}
-
-function loadDriveFolders() {
-    fetch('/google-drive/folders')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const foldersDiv = document.getElementById('drive-folders');
-            foldersDiv.innerHTML = '';
-            
-            data.folders.forEach(folder => {
-                const folderDiv = document.createElement('div');
-                folderDiv.className = 'form-check';
-                folderDiv.innerHTML = `
-                    <input class="form-check-input" type="checkbox" value="${folder.id}" id="folder-${folder.id}">
-                    <label class="form-check-label" for="folder-${folder.id}">
-                        <i class="fas fa-folder"></i> ${folder.name}
-                    </label>
-                `;
-                foldersDiv.appendChild(folderDiv);
-                
-                // Add click handler to load images from folder
-                folderDiv.addEventListener('click', () => loadDriveImages(folder.id, folder.name));
-            });
-        } else {
-            showToast('Error loading Drive folders: ' + data.error, 'error');
-        }
-    })
-    .catch(error => {
-        showToast('Error loading Drive folders: ' + error.message, 'error');
-    });
-}
-
-function loadDriveImages(folderId, folderName) {
-    fetch(`/google-drive/images?folder_id=${folderId}`)
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const recentFilesDiv = document.getElementById('drive-recent-files');
-            recentFilesDiv.innerHTML = `<h6>Images from ${folderName}</h6>`;
-            
-            if (data.images.length === 0) {
-                recentFilesDiv.innerHTML += '<p class="text-muted">No images found in this folder</p>';
-                return;
-            }
-            
-            data.images.forEach(image => {
-                const imageDiv = document.createElement('div');
-                imageDiv.className = 'mb-2 p-2 border rounded';
-                imageDiv.innerHTML = `
-                    <div class="d-flex align-items-center">
-                        <img src="${image.thumbnailLink || '/static/img/image-placeholder.png'}" 
-                             alt="${image.name}" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
-                        <div class="flex-grow-1">
-                            <div class="fw-bold">${image.name}</div>
-                            <small class="text-muted">${formatFileSize(image.size)}</small>
-                        </div>
-                        <button class="btn btn-sm btn-outline-primary" onclick="selectDriveImage('${image.id}', '${image.name}')">
-                            <i class="fas fa-plus"></i> Use
-                        </button>
-                    </div>
-                `;
-                recentFilesDiv.appendChild(imageDiv);
-            });
-        } else {
-            showToast('Error loading images: ' + data.error, 'error');
-        }
-    })
-    .catch(error => {
-        showToast('Error loading images: ' + error.message, 'error');
-    });
-}
-
-function selectDriveImage(fileId, fileName) {
-    fetch(`/google-drive/image/${fileId}`)
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Add to training data
-            const imageData = {
-                filename: fileName,
-                source: 'google_drive',
-                file_id: fileId,
-                download_link: data.download_link,
-                category: 'google_drive',
-                timestamp: new Date().toISOString()
-            };
-            
-            // Send to backend
-            fetch('/save-drive-image', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(imageData)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    showToast(`Added "${fileName}" to training gallery!`, 'success');
-                    loadImageGallery(); // Refresh gallery
-                } else {
-                    showToast('Error saving image: ' + result.error, 'error');
-                }
-            });
-        } else {
-            showToast('Error getting image: ' + data.error, 'error');
-        }
-    })
-    .catch(error => {
-        showToast('Error getting image: ' + error.message, 'error');
-    });
-}
+// Google Drive integration removed - now using Supabase for image storage
 
 function formatFileSize(bytes) {
     if (!bytes) return 'Unknown size';
